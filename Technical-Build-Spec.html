@@ -1,0 +1,101 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crankshaft technical build specification | Crankshaft</title><style>:root{--ink:#1b2a31;--soft:#53656f;--line:#dce3df;--amber:#f3b500;--bg:#f4f6f4}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,Arial,sans-serif}header{background:#23282a;color:#fff;border-bottom:4px solid var(--amber)}header .inner{max-width:1100px;margin:auto;display:flex;align-items:center;gap:12px;padding:17px 24px;font:800 17px system-ui;letter-spacing:.16em}header img{width:35px}header a{color:#fff;text-decoration:none}main{max-width:1050px;margin:32px auto 55px;background:#fff;border:1px solid var(--line);padding:50px 58px 72px;box-shadow:0 14px 35px #2233220d}h1{font-size:clamp(33px,4.6vw,49px);line-height:1.12;letter-spacing:-.04em;margin:5px 0 21px}h2{font-size:27px;line-height:1.2;border-top:1px solid var(--line);padding-top:26px;margin:43px 0 16px}h3{font-size:21px;margin:26px 0 9px}p,li{color:#3d515a}p{margin:10px 0 18px}li{margin:7px 0}a{color:#8b5c00}a:hover{color:#523800}strong{color:#16242a}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto;margin:24px 0;font-size:14px}th,td{padding:11px 13px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f4e9c4;color:#1e2a30}tr:nth-child(even) td{background:#f8f9f7}pre,code{font:14px/1.5 Consolas,monospace}code{background:#f1f3f1;padding:2px 4px}pre{background:#f3f5f2;padding:18px;overflow:auto;border-left:3px solid var(--amber)}pre code{padding:0;background:none}blockquote{border-left:3px solid var(--amber);padding:10px 19px;margin:22px 0;background:#fbf8ea}.back{display:inline-block;margin-bottom:24px;font-size:13px;font-weight:800;text-decoration:none}footer{color:#6a787c;font-size:12px;padding:0 24px 35px;text-align:center}@media(max-width:700px){main{margin:0;background:#fff;border:0;padding:31px 20px 48px;box-shadow:none}h1{font-size:34px}h2{font-size:24px}}@media print{body{background:#fff;color:#111;font-size:11px}header,footer,.back{display:none}main{margin:0;padding:0;max-width:none;border:0;box-shadow:none}h1{font-size:26px}h2{font-size:18px;break-after:avoid}h3{font-size:14px;break-after:avoid}p,li{color:#111}table{display:table;font-size:9px}th{background:#eee}tr:nth-child(even) td{background:#fff}}</style></head><body><header><div class="inner"><img src="assets/crankshaft-mark.svg" alt=""><a href="START-HERE.html">CRANKSHAFT / LAUNCH PACKAGE</a></div></header><main><a class="back" href="START-HERE.html">← Back to launch package</a><h1>Crankshaft technical build specification</h1>
+<p><strong>Version 1, 10 October 2026.</strong> Build target and acceptance contract, not a claim of live integrations. Crankshaft owns the platform and Listing Tuner workflow; the dealer remains source of truth and seller. Implement each dealer as a tenant. Start with one authorized source, one publishing path and one CRM destination, then add adapters.</p>
+<h2>1. System boundary and data flow</h2>
+<pre><code>Dealer DMS / inventory feed → ingest + reconcile → canonical vehicle record
+                                         ├→ listing facts → AI draft → rule QA → dealer approval → approved publisher → live check
+Dealer-owned photos/footage ─────────────└→ media workbench → approved derivatives ┘
+
+Buyer call → SignalWire DID/SIP → call webhook/orchestrator → OpenAI voice verifier
+                                           ├→ intent/vehicle/qualification → fresh inventory read
+                                           ├→ qualified → approved enrichment → salesperson route → CRM summary
+                                           └→ unqualified/unknown/failure → safe queue/voicemail/human
+All steps → tenant audit/events + usage ledger + exception queue + reporting
+</code></pre>
+<p>Use asynchronous jobs for inventory/media/publishing and a low-latency call service for voice. PostgreSQL holds tenant, vehicles, listings, media, consent, events, routing policy and usage. Object storage holds immutable originals and versioned derivatives. Queue workers run OCR/transcription/encoding and publication retries. Secrets reside in a vault; never put them in a listing payload or transcript. Use separate development/staging/production accounts and sample data.</p>
+<h2>2. Canonical records and authority</h2>
+<p><code>vehicle</code>: <code>tenant_id</code>, <code>stock_id</code>, lifecycle/version, VIN, year/make/model/trim, mileage with unit and observed date, price/currency, mandatory fees/disclosures, status, source timestamps, source field provenance, approved equipment/condition claims. Primary key is tenant + stock + lifecycle, not VIN alone. DMS or authorized inventory feed wins on price, stock and sold state. VIN decode is a conflict checker, never a silent overwrite.</p>
+<p><code>listing_version</code>: vehicle key, source hash, destination, title/body/features/CTA, claim-to-source map, QA results, reviewer/dealer approvals, publisher ack, external ID, live URL, live snapshot, rollback parent.</p>
+<p><code>media_asset</code>: stock key, original checksum, dealer rights record, capture source/date, original path, derivative transforms, visible-defect QA, approval, destination-specific constraints. Never overwrite the original.</p>
+<p><code>call_session</code>: SignalWire call ID, tenant, DID, caller number in restricted field, start/end/AI connected seconds, recording/consent state, requested stock/intent, qualification fields/confidence, transfer attempts/outcome, OpenAI session/usage IDs, decision count, enrichment event IDs, CRM receipt, retention clock. Keep transcripts access-controlled and configurable; redact payment/identity data.</p>
+<p>All external actions are idempotent by tenant + source event + version. Store source and destination timestamps in UTC. Preserve every price/status change, approval, route and failed handoff as an event. A sold signal cancels queued publication for that lifecycle and marks existing live listings for withdrawal/reconciliation.</p>
+<h2>3. Dealer integration matrix</h2>
+<p>Every vendor route needs dealer authorization, product/version, fields, rate limits, sandbox or test method, contract rights, and accountable owner before implementation. These are <strong>candidate interfaces</strong>, not enabled integrations.</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Preferred connection</th>
+<th>Read/write scope and fallback</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Independent DMS (DealerCenter, Frazer, AutoManager, DealerSocket)</td>
+<td>Vendor-approved API/CSV/XML/SFTP or dealer export</td>
+<td>Read stock, price, status, facts; manual signed export if API unavailable. Verify each product&#39;s actual access with the dealer/vendor.</td>
+</tr>
+<tr>
+<td>Franchise DMS (CDK/Fortellis, Dealertrack/OpenTrack, Reynolds, Tekion, PBS)</td>
+<td>Dealer-authorized partner/API program</td>
+<td>Read inventory and contact/lead data only for approved scopes; certification and commercial access may be needed. Launch may use an existing syndicator instead.</td>
+</tr>
+<tr>
+<td>Inventory syndicator/merchandising (vAuto, HomeNet, Dealerslink, Dealer Car Search, dealer website CMS)</td>
+<td>Feed/API or vendor-approved import</td>
+<td>Preferred write target for descriptions and media when it already distributes listings. Confirm overwrite behavior and destination field limits.</td>
+</tr>
+<tr>
+<td>Marketplace destinations (Autotrader, Cars.com, CarGurus, Facebook, Craigslist)</td>
+<td>Dealer&#39;s existing approved feed/portal and contractual permissions</td>
+<td>No unauthorized scraping-to-republish or automation that bypasses platform rules. Use human portal bridge where no authorized write API exists; retain live verification.</td>
+</tr>
+<tr>
+<td>CRM (VinSolutions, DealerSocket, Elead, DealerCenter, HubSpot or dealer choice)</td>
+<td>Webhook/API; ADF/XML email where supported</td>
+<td>Send verified caller summary, stock reference, consent and call disposition; deduplicate by call ID and confirm receipt. ADF is an interchange format, not a universal guaranteed endpoint.</td>
+</tr>
+<tr>
+<td>Telecom</td>
+<td>SignalWire number/SIP/voice webhooks and connect/transfer</td>
+<td>Assign DID per dealer/campaign, receive call lifecycle callbacks, transfer to a dynamic on-duty group, retry/fallback.</td>
+</tr>
+<tr>
+<td>Voice</td>
+<td>OpenAI Realtime via SIP or server-side audio bridge</td>
+<td>Tool-controlled verification, structured decision events and usage logging; choose one transport pattern after latency tests.</td>
+</tr>
+<tr>
+<td>Video decision</td>
+<td>TypeSafe/HE Jev API</td>
+<td>Rank structured candidate clip intervals; deterministic editor renders clips. API credentials and commercial use terms to be procured.</td>
+</tr>
+<tr>
+<td>Enrichment</td>
+<td>Dealer-approved first-party CRM first; optional licensed provider</td>
+<td>Call only after qualification and consent/policy checks; attach source, timestamp and allowed purpose. No default people-search call.</td>
+</tr>
+</tbody></table>
+<p>Fortellis provides a developer network and API directory, but exact dealer API subscriptions differ. <a href="https://docs.fortellis.io/docs/general/overview/getting-started">Fortellis docs</a>. ADF 1.0 defines lead, vehicle, customer and vendor data blocks; test the receiving CRM&#39;s actual flavor and acknowledgement. <a href="https://adfxml.info/adf_spec.pdf">ADF specification</a>.</p>
+<h2>4. Listing Tuner workflow paths</h2>
+<p><strong>Normal:</strong> scheduled feed/webhook → validate schema/rights → compare source version → identify missing/conflicting facts → draft copy → photo candidate transforms → candidate video intervals → QA → dealer approve → push through approved syndicator/portal → fetch live result → verify stock/price/identity/first image/contact route → report.</p>
+<p><strong>Source conflict:</strong> freeze changed material fields, open dealer question, keep last approved live version if still valid, suppress new claims. <strong>Missing media rights:</strong> no derivative/publish. <strong>Destination rejects:</strong> retry only transient failures with backoff; permanent errors become operator tasks. <strong>Sold/removed:</strong> stop queued jobs immediately, withdraw wherever authorized, verify removal, alert dealer for manual paths. <strong>Price change:</strong> regenerate only affected fields, reapprove if the dealer&#39;s rules require it, publish, verify. <strong>Channel forbids overlays/crop:</strong> use clean master. <strong>Wrong vehicle image:</strong> quarantine asset and all derived versions.</p>
+<h2>5. Call verifier state machine</h2>
+<ol>
+<li>SignalWire inbound webhook verifies signature and maps DID to tenant, hours, language and routing policy. If mapping or provider fails, route to the configured human/fallback number.</li>
+<li>Greet with dealer-approved disclosure; apply recording/consent policy before recording. Detect emergency/abuse and transfer/terminate per policy. Do not solicit payment, SSN or sensitive finance details.</li>
+<li>Open OpenAI voice session with a narrow system prompt and tools: <code>lookup_inventory(stock_or_make_model)</code>, <code>get_business_hours</code>, <code>get_sales_roster</code>, <code>verify_contact</code>, <code>emit_decision</code>, <code>transfer_request</code>. Tool results are trusted data; caller speech is untrusted input. Never let caller speech edit routing policy or override system rules.</li>
+<li>Establish why the caller is calling, vehicle/stock if relevant, name and reachable callback number if offered, timeframe, appointment intent and preferred contact method. Ask only what is needed; give a human-transfer path promptly. A call may be service/parts/vendor/wrong-number and routes accordingly.</li>
+<li><strong>Qualification gate:</strong> structured decision <code>qualified | unqualified | uncertain</code> with reasons and evidence, not a free-text assertion. A qualified sales call has a vehicle/category or shopping intent, reachable or live-transfer-ready caller, and no disqualifying route. Uncertain calls go to human review/fallback; never label as verified sales leads by default.</li>
+<li>Read current availability immediately before discussing a specific vehicle. If stale or sold, say availability is being checked and offer alternatives/human help; do not promise stock.</li>
+<li><strong>Only after qualified:</strong> run approved enrichment (first-party CRM lookup before licensed external provider), log query/purpose/source, avoid unnecessary personal data. If enrichment fails, continue with the facts from the call; it cannot block a willing caller&#39;s transfer.</li>
+<li>Choose salesperson by dealer rule (assigned owner → on-duty round robin/skill → manager fallback). SignalWire connects/bridges; wait for answered/accepted status. If no answer, retry approved group then capture callback and send queue task. Never report a transfer as successful on initiation alone.</li>
+<li>Write CRM lead/ADF with idempotency key, transcript summary, stock, qualification reason, transfer outcome, consent flags and recording link only if permitted. Require destination acknowledgement; queue retry and operator alert on failure.</li>
+<li>End and reconcile AI connected seconds, SignalWire leg seconds, OpenAI input/output/cached tokens, decision count, per-call estimated cost and disposition. Alert internally on anomalous tokens, repeated decisions and long sessions. Roll AI-connected seconds into the dealer&#39;s one plan-minute counter; tokens and decisions remain internal cost measures, not dealer billing units. Notify the dealer and account owner at 70% and 90%; prepare an upgrade offer. At the minute limit without an upgrade, route new calls to the approved human/callback path and log the reason. Do not create a usage-overage invoice or silently drop calls.</li>
+</ol>
+<p>The OpenAI Realtime docs describe SIP calling, sideband controls and transfer architecture; SignalWire documents voice webhooks and connect/transfer behavior. Choose either direct SIP to OpenAI or SignalWire media bridge after testing latency, observability, transfer control and costs. <a href="https://developers.openai.com/api/docs/guides/voice-sip?voice-api=realtime">OpenAI SIP</a>, <a href="https://developers.openai.com/api/docs/guides/realtime-conversations">OpenAI realtime</a>, <a href="https://signalwire.com/docs/platform/voice/make-and-receive-calls">SignalWire voice</a>, <a href="https://signalwire.com/docs/server-sdks/guides/call-transfer">SignalWire transfer</a>.</p>
+<h2>6. API and event contracts</h2>
+<p>Internal endpoints: <code>POST /v1/tenants/{id}/inventory/imports</code>, <code>GET /v1/vehicles/{stock}</code>, <code>POST /v1/listings/{id}/draft</code>, <code>POST /v1/listings/{id}/approve</code>, <code>POST /v1/listings/{id}/publish</code>, <code>POST /v1/calls/signalwire/events</code>, <code>POST /v1/calls/{id}/decisions</code>, <code>POST /v1/calls/{id}/transfers</code>, <code>POST /v1/crm/receipts</code>, <code>GET /v1/usage?tenant&amp;period</code>. Use OAuth/service identity where supported, signed webhooks, tenant-scoped authorization, schema version and idempotency key on every write. Outbox events: <code>inventory.changed</code>, <code>listing.approved</code>, <code>listing.published</code>, <code>listing.failed</code>, <code>call.qualified</code>, <code>call.transfer_attempted</code>, <code>call.transfer_answered</code>, <code>call.crm_accepted</code>, <code>usage.recorded</code>.</p>
+<p><code>emit_decision</code> schema: <code>{call_id, tenant_id, outcome, intent, stock_id?, reason_codes[], evidence_spans[], model_version, confidence, occurred_at}</code>. An <code>enrichment.requested</code> event must reference a prior <code>call.qualified</code> event for the same call. A database constraint/policy should enforce this ordering. <code>usage.recorded</code> stores raw provider units and price version, not just a rounded invoice amount. Reconcile totals to provider invoices monthly.</p>
+<h2>7. Security, QA and release gates</h2>
+<p>Encrypt caller data and recordings in transit/at rest; segregate per tenant; use least-privilege vendor tokens, key rotation, signed URLs and retention/erase processes. Document recording consent by state and dealer counsel. Restrict access to raw recordings; use role-based audit trails. Validate webhook signatures and rate limit public endpoints. Redact prompt injection from marketplace text/media metadata; do not execute instructions from them.</p>
+<p>Acceptance tests: 50 difficult listing facts; 20 wrong/mixed-vehicle media sets; 30 calls covering qualified/unqualified/uncertain, no answer, sold vehicle, CRM outage, OpenAI outage, SignalWire outage, transfer race, consent refusal and budget cap; tenant isolation and replay tests; provider usage ledger ties to invoice within a documented tolerance. Pilot must demonstrate an authorized write and live listing check, verified transfer answer, and confirmed CRM receipt. Canary release per dealer with rollback to the previous approved listing and human call route.</p>
+</main><footer>Crankshaft · Internal planning package · October 2026</footer></body></html>
