@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Crankshaft Listing Tuner internal API
-  version: 0.1.0-proposed
+  version: 0.2.0-proposed
   description: >-
     Proposed canonical contract. WP-00 maps these paths to the existing
     Crankshaft website/auth/verifier stack before implementation.
@@ -244,6 +244,269 @@ paths:
                 properties:
                   event_id: { type: string }
                   accepted: { type: boolean }
+  /v1/dealer/staff:
+    get:
+      operationId: listDealerStaff
+      summary: List tenant and location scoped Crankshaft staff records
+      parameters:
+        - in: query
+          name: location_id
+          schema: { type: string }
+      responses:
+        '200':
+          description: Active and historical staff, role filtered
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/DealerStaff' } }
+    post:
+      operationId: createDealerStaff
+      summary: Create a Crankshaft salesperson and routing target
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DealerStaffInput' }
+      responses:
+        '201':
+          description: Stable staff ID created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DealerStaff' }
+  /v1/dealer/staff/{staff_id}:
+    patch:
+      operationId: updateDealerStaff
+      summary: Effective dated staff/routing update; never erase prior call assignments
+      parameters:
+        - in: path
+          name: staff_id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DealerStaffInput' }
+      responses:
+        '200':
+          description: Updated staff record
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DealerStaff' }
+  /v1/dealer/calls:
+    get:
+      operationId: listDealerCalls
+      summary: Paginated received calls with assigned/answered salesperson
+      parameters:
+        - in: query
+          name: location_id
+          schema: { type: string }
+        - in: query
+          name: staff_id
+          schema: { type: string }
+        - in: query
+          name: cursor
+          schema: { type: string }
+      responses:
+        '200':
+          description: Role-filtered call page
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/CallLedgerRecord' } }
+                  next_cursor: { type: [string, 'null'] }
+  /v1/dealer/calls/{call_id}:
+    get:
+      operationId: getDealerCall
+      summary: One received call and all transfer legs
+      parameters:
+        - in: path
+          name: call_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Call detail, role scoped
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CallLedgerRecord' }
+  /v1/dealer/calls/{call_id}/corrections:
+    post:
+      operationId: correctDealerCall
+      summary: Append manager correction; retain original event and reason
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: call_id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [field, corrected_value, reason]
+              properties:
+                field: { type: string, enum: [answered_staff_id, disposition, requested_stock_lifecycle_id] }
+                corrected_value: { type: string }
+                reason: { type: string, minLength: 1 }
+      responses:
+        '201': { description: Audited correction accepted }
+  /v1/connectors/catalog:
+    get:
+      operationId: getConnectorCatalog
+      summary: Product/version capability manifests and access prerequisites
+      responses:
+        '200':
+          description: Available and gated product adapters
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/ConnectorManifest' } }
+  /v1/connections:
+    post:
+      operationId: createProviderConnection
+      summary: Create scoped connection; secret submitted through secure one-time vault handoff
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [provider, product, location_ids, auth_handoff_id]
+              properties:
+                provider: { type: string }
+                product: { type: string }
+                location_ids: { type: array, items: { type: string } }
+                auth_handoff_id: { type: string, description: One-time secret/OAuth handoff reference, not the credential }
+      responses:
+        '201':
+          description: Connection created, validation pending
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProviderConnection' }
+  /v1/connection-auth-handoffs:
+    post:
+      operationId: createConnectionAuthHandoff
+      summary: One-time direct vault handoff for vendor-issued token; never log or echo token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [provider, product, credential]
+              properties:
+                provider: { type: string }
+                product: { type: string }
+                credential: { type: string, writeOnly: true }
+      responses:
+        '201':
+          description: One-time handoff reference only
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [auth_handoff_id, expires_at]
+                properties:
+                  auth_handoff_id: { type: string }
+                  expires_at: { type: string, format: date-time }
+  /v1/connections/{connection_id}/test:
+    post:
+      operationId: testProviderConnection
+      summary: Validate tenant, scope and provider access without returning a secret
+      parameters:
+        - $ref: '#/components/parameters/ConnectionId'
+      responses:
+        '200':
+          description: Capability and sample read test result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProviderConnection' }
+  /v1/connections/{connection_id}/rotate:
+    post:
+      operationId: rotateProviderConnection
+      summary: Replace key with a new one-time auth handoff
+      parameters:
+        - $ref: '#/components/parameters/ConnectionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [auth_handoff_id]
+              properties:
+                auth_handoff_id: { type: string }
+      responses:
+        '200':
+          description: Rotation receipt, old secret revoked
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProviderConnection' }
+  /v1/connections/{connection_id}:
+    delete:
+      operationId: revokeProviderConnection
+      summary: Disable jobs and revoke/delete secret reference
+      parameters:
+        - $ref: '#/components/parameters/ConnectionId'
+      responses:
+        '204': { description: Disabled and revocation queued }
+  /v1/exports/listings:
+    post:
+      operationId: exportApprovedListings
+      summary: Produce validated listing CSV and media manifest/ZIP
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [listing_version_ids, format_version]
+              properties:
+                listing_version_ids: { type: array, minItems: 1, items: { type: string } }
+                format_version: { type: string, enum: [inventory-listings-v1] }
+      responses:
+        '202':
+          description: Export job queued; not a live publication receipt
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobReceipt' }
+  /v1/exports/calls:
+    post:
+      operationId: exportDealerCalls
+      summary: Generate role-scoped calls-v1 CSV, masked by policy
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [from, to, format_version]
+              properties:
+                from: { type: string, format: date-time }
+                to: { type: string, format: date-time }
+                location_id: { type: [string, 'null'] }
+                format_version: { type: string, enum: [calls-v1] }
+      responses:
+        '202':
+          description: Export job queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobReceipt' }
 components:
   securitySchemes:
     bearerAuth:
@@ -270,6 +533,11 @@ components:
       name: version_id
       required: true
       schema: { type: string }
+    ConnectionId:
+      in: path
+      name: connection_id
+      required: true
+      schema: { type: string }
   responses:
     Conflict:
       description: Source revision, state or approval hash changed
@@ -282,6 +550,74 @@ components:
               code: { type: string }
               message: { type: string }
   schemas:
+    DealerStaffInput:
+      type: object
+      additionalProperties: false
+      required: [display_name, location_ids, active, route_target, timezone]
+      properties:
+        display_name: { type: string, minLength: 1 }
+        location_ids: { type: array, minItems: 1, items: { type: string } }
+        active: { type: boolean }
+        route_target: { type: string, description: Existing router destination reference }
+        timezone: { type: string }
+        crm_external_user_id: { type: [string, 'null'] }
+        effective_at: { type: string, format: date-time }
+    DealerStaff:
+      allOf:
+        - $ref: '#/components/schemas/DealerStaffInput'
+        - type: object
+          required: [staff_id, tenant_id]
+          properties:
+            staff_id: { type: string }
+            tenant_id: { type: string }
+    CallLedgerRecord:
+      type: object
+      required: [call_id, tenant_id, location_id, started_at, transfer_attempts]
+      properties:
+        call_id: { type: string }
+        tenant_id: { type: string }
+        location_id: { type: string }
+        started_at: { type: string, format: date-time }
+        ended_at: { type: [string, 'null'], format: date-time }
+        qualification: { type: [string, 'null'] }
+        requested_stock_lifecycle_id: { type: [string, 'null'] }
+        answered_staff_id: { type: [string, 'null'] }
+        disposition: { type: [string, 'null'] }
+        crm_lead_id: { type: [string, 'null'] }
+        caller_display: { type: [string, 'null'], description: Role-masked }
+        transfer_attempts:
+          type: array
+          items:
+            type: object
+            required: [transfer_attempt_id, staff_id, status, started_at]
+            properties:
+              transfer_attempt_id: { type: string }
+              staff_id: { type: string }
+              signalwire_leg_id: { type: [string, 'null'] }
+              status: { type: string, enum: [attempted, ringing, answered, no_answer, failed, voicemail] }
+              started_at: { type: string, format: date-time }
+              answered_at: { type: [string, 'null'], format: date-time }
+    ConnectorManifest:
+      type: object
+      required: [provider, product, manifest_version, auth_kind, capabilities]
+      properties:
+        provider: { type: string }
+        product: { type: string }
+        manifest_version: { type: string }
+        auth_kind: { type: string, enum: [oauth, api_key, partner_grant, sftp, csv] }
+        capabilities:
+          type: object
+          additionalProperties: { type: boolean }
+    ProviderConnection:
+      type: object
+      required: [connection_id, provider, product, state]
+      properties:
+        connection_id: { type: string }
+        provider: { type: string }
+        product: { type: string }
+        state: { type: string, enum: [pending_access, testing, active, degraded, revoked] }
+        scopes: { type: array, items: { type: string } }
+        last_tested_at: { type: [string, 'null'], format: date-time }
     JobReceipt:
       type: object
       required: [job_id, state]

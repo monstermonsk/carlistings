@@ -1,0 +1,278 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crankshaft connector catalog and dealer portal specification | Crankshaft</title><style>:root{--ink:#1b2a31;--soft:#53656f;--line:#dce3df;--amber:#f3b500;--bg:#f4f6f4}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,Arial,sans-serif}header{background:#23282a;color:#fff;border-bottom:4px solid var(--amber)}header .inner{max-width:1100px;margin:auto;display:flex;align-items:center;gap:12px;padding:17px 24px;font:800 17px system-ui;letter-spacing:.16em}header img{width:35px}header a{color:#fff;text-decoration:none}main{max-width:1050px;margin:32px auto 55px;background:#fff;border:1px solid var(--line);padding:50px 58px 72px;box-shadow:0 14px 35px #2233220d}h1{font-size:clamp(33px,4.6vw,49px);line-height:1.12;letter-spacing:-.04em;margin:5px 0 21px}h2{font-size:27px;line-height:1.2;border-top:1px solid var(--line);padding-top:26px;margin:43px 0 16px}h3{font-size:21px;margin:26px 0 9px}p,li{color:#3d515a}p{margin:10px 0 18px}li{margin:7px 0}a{color:#8b5c00}a:hover{color:#523800}strong{color:#16242a}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto;margin:24px 0;font-size:14px}th,td{padding:11px 13px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f4e9c4;color:#1e2a30}tr:nth-child(even) td{background:#f8f9f7}pre,code{font:14px/1.5 Consolas,monospace}code{background:#f1f3f1;padding:2px 4px}pre{background:#f3f5f2;padding:18px;overflow:auto;border-left:3px solid var(--amber)}pre code{padding:0;background:none}blockquote{border-left:3px solid var(--amber);padding:10px 19px;margin:22px 0;background:#fbf8ea}.back{display:inline-block;margin-bottom:24px;font-size:13px;font-weight:800;text-decoration:none}footer{color:#6a787c;font-size:12px;padding:0 24px 35px;text-align:center}@media(max-width:700px){main{margin:0;background:#fff;border:0;padding:31px 20px 48px;box-shadow:none}h1{font-size:34px}h2{font-size:24px}}@media print{body{background:#fff;color:#111;font-size:11px}header,footer,.back{display:none}main{margin:0;padding:0;max-width:none;border:0;box-shadow:none}h1{font-size:26px}h2{font-size:18px;break-after:avoid}h3{font-size:14px;break-after:avoid}p,li{color:#111}table{display:table;font-size:9px}th{background:#eee}tr:nth-child(even) td{background:#fff}}</style></head><body><header><div class="inner"><img src="assets/crankshaft-mark.svg" alt=""><a href="START-HERE.html">CRANKSHAFT / LAUNCH PACKAGE</a></div></header><main><a class="back" href="START-HERE.html">← Back to launch package</a><h1>Crankshaft connector catalog and dealer portal specification</h1>
+<p><strong>Engineering research and implementation contract · 11 October 2026.</strong> Crankshaft owns the dealer-facing portal. Dealers do not need a bespoke integration workshop. They choose their software from a supported list, authorize a connection when that vendor permits it, and use the same Crankshaft screens regardless of vendor. The adapter layer translates that standard interface to vendor APIs, approved feeds, or CSV. This catalog is a researched starting set, not a claim that every vendor grants Crankshaft access today. Vendor permissions and documentation can change; recheck a row before enabling a production connector.</p>
+<h2>1. Product boundary and user journeys</h2>
+<ol>
+<li>A dealer administrator creates a dealership and locations in the existing Crankshaft identity system. Crankshaft stores its <strong>own</strong> dealer staff directory: salesperson ID, name, location, role, active status, allowed call types, working hours/timezone, routing priority, forwarding destination, CRM user ID(s), and effective dates. The directory is authoritative for Crankshaft routing and reporting; an authorized CRM staff sync can propose updates but does not silently remove a live transfer target.</li>
+<li>The administrator chooses inventory/DMS, CRM, syndicator/website, and marketplace destinations in <strong>Connections</strong>. They complete OAuth where supported or enter a vendor-issued API key/token in a secure one-time form. Partner-gated products display <strong>Awaiting vendor access</strong> and the exact required authorization step. A dealer login/password is never used as a substitute for an API credential. CSV is an always-available output path.</li>
+<li>A salesperson selects a current stock unit and uploads real photos/phone video. Listing Tuner produces a reviewable listing. A dealer approver approves a specific immutable version. Crankshaft sends it through an authorized primary inventory/website/syndication route; direct marketplace sends run only where separately authorized. Export is available in CSV plus media manifest/ZIP.</li>
+<li>The already-built verifier and SignalWire router emit call/transfer events to Crankshaft <strong>after</strong> routing decisions. The portal displays each received call, requested vehicle if known, qualification, the agent(s) attempted, the agent who answered, duration, disposition, and linked lead/appointment. An administrator can correct assignment/outcome with an audit record. Listing/portal outages cannot block a live call.</li>
+<li>If the CRM grants write access, Crankshaft posts the qualified lead/call disposition and keeps the vendor receipt. If it grants read access, Crankshaft reconciles appointments and sales. If neither is available, export a standard call/lead CSV and import a dealer-provided outcome CSV. The portal remains usable without a CRM connection.</li>
+</ol>
+<h2>2. Canonical model and synchronization</h2>
+<p><strong>Core keys:</strong> <code>tenant_id</code>, <code>location_id</code>, <code>staff_id</code> (Crankshaft UUID), <code>stock_lifecycle_id</code>, <code>listing_version_id</code>, <code>call_id</code> (existing verifier ID), <code>transfer_attempt_id</code>, <code>lead_journey_id</code>, <code>connection_id</code>, <code>external_record_id</code>. Keep separate mappings <code>(tenant, system, external_staff_id) ↔ staff_id</code> and <code>(tenant, system, external_stock_id) ↔ stock_lifecycle_id</code>; names and VIN alone are not join keys. A stock ID can be reused after sale, so its lifecycle is versioned.</p>
+<p><strong>Tables:</strong> <code>dealer</code>, <code>dealer_location</code>, <code>dealer_staff</code>, <code>staff_external_id</code>, <code>staff_schedule</code>, <code>routing_policy_version</code>, <code>provider_connection</code>, <code>provider_capability</code>, <code>provider_secret_ref</code>, <code>external_id_map</code>, <code>sync_cursor</code>, <code>sync_run</code>, <code>connector_receipt</code>, <code>stock_snapshot</code>, <code>listing_version</code>, <code>publication</code>, <code>call_event</code>, <code>transfer_attempt</code>, <code>call_assignment</code>, <code>lead_journey</code>, <code>lead_external_id</code>, <code>outcome_event</code>, <code>csv_export</code>, <code>audit_event</code>. Scope all queries and object paths by tenant. Use append-only raw provider events and an idempotent normalized projection; record source timestamp, received timestamp, provider revision, mapping version, and correlation ID.</p>
+<p><strong>Call ledger minimum:</strong> <code>call_id</code>, location, incoming DID/source campaign, start/end/duration, caller display token (mask number by role), consent/recording flag, requested stock candidates/confidence, verifier result/reason/policy version, transfer attempts with target <code>staff_id</code>, initiation/ring/answer/end timestamps and provider status, <code>answered_staff_id</code> (nullable), final disposition, CRM lead ID/receipt, appointment ID, and listing attribution confidence. Distinguish <code>attempted</code>, <code>answered</code>, <code>missed</code>, <code>voicemail</code>, <code>after_hours</code>, <code>service</code>, and <code>unassigned</code>; never infer “routed to salesperson” merely from a dial attempt. Use SignalWire call/leg IDs to reconcile the existing router&#39;s events. Staff deletion is soft/effective-dated so historical call assignments remain readable.</p>
+<p><strong>Portal views and roles:</strong> dealer admin sees Connections, Staff &amp; Routing, Listings, Calls, Outcomes, Exports, and Audit. Sales manager sees staff, calls, listing review, and outcomes for assigned locations. Salesperson sees own assigned calls and capture tasks. Crankshaft operator sees tenant-scoped support data but not provider secret values. Field-level masking applies to caller data and recording/transcript links. Pagination, date/location/staff/qualification filters, CSV download and audit trail are part of the Calls screen. Show late/missing provider events and reconciliation state, never a fabricated final result.</p>
+<p><strong>Sync directions and conflict policy:</strong> inventory/price/status are inbound from the dealer&#39;s selected system; approved copy/media are outbound to its permitted merchandising destination; call events are inbound from Crankshaft&#39;s existing verifier/router; qualified leads/dispositions are outbound to CRM if supported; appointments/sales are inbound from CRM/DMS if supported. Dealers set field authority in a standard preset per vendor, with an explicit override for exceptions. Price, sold state and dealer-required disclosures always pass a fresh source-revision gate before publish. Never let a downstream marketplace&#39;s transformed record overwrite the source stock. Polling/webhook cursors are per connection; webhook replay and duplicate messages are safe.</p>
+<h2>3. Standard connector contract</h2>
+<p>Implement one versioned internal interface; a provider implements only the capabilities it actually supports:</p>
+<pre><code class="language-ts">interface DealerConnector {
+  manifest(): CapabilityManifest;                  // vendor, products, auth, scopes, directions, limits
+  testConnection(connectionId): ConnectionResult; // no secret returned
+  pullInventory(cursor?): AsyncIterable&lt;StockDelta&gt;;
+  pullStaff?(cursor?): AsyncIterable&lt;StaffDelta&gt;;
+  pushListing?(version, idempotencyKey): PublicationReceipt;
+  removeListing?(externalId, idempotencyKey): PublicationReceipt;
+  readPublication?(externalId): PublishedSnapshot;
+  pushLead?(callId, lead, idempotencyKey): LeadReceipt;
+  pullOutcomes?(cursor?): AsyncIterable&lt;OutcomeDelta&gt;;
+  health(): ConnectorHealth;
+}
+</code></pre>
+<p><code>CapabilityManifest</code> is explicit per <strong>vendor + product + version + dealer entitlement</strong>, not a generic “API supported” boolean. Fields: <code>inventory.read</code>, <code>listing.write</code>, <code>listing.remove</code>, <code>publication.read</code>, <code>staff.read</code>, <code>lead.write</code>, <code>outcome.read</code>, <code>webhook</code>, <code>csv.in</code>, <code>csv.out</code>, auth kind, required scopes, media method, supported fields, field limits, cadence, rate limit, prerequisite agreement, and test/live status. The portal turns unsupported actions into a labeled export/manual path. Acceptance of a feed is <code>accepted</code>, not <code>live</code>; only a vendor readback or verified public VDP can set <code>live</code>. If the vendor never offers readback, display <code>accepted / live unverified</code>.</p>
+<p>Build adapters with provider contract tests and recorded synthetic fixtures. For each write: validate normalized payload against the destination profile; upsert by stable external key; persist request hash and receipt; retry transient errors with backoff; reconcile external IDs; compare resulting URL/record when possible; alert on mismatch. Sold status cancels queued upserts and starts withdrawal through every connected path. A partner feed that republishes to several sites must report <strong>one hub receipt plus separate downstream verification</strong>, avoiding duplicate direct postings.</p>
+<h2>4. Connection and secret design</h2>
+<p>The UI flow is <code>Select provider → Show supported directions and prerequisite → Connect/enter key → Validate scopes and location → Review field mapping preset → Test with synthetic or read-only record → Activate</code>. For OAuth, use authorization-code flow with PKCE and state/nonce; redirect through a Crankshaft callback and store refresh/access tokens server-side. For API keys, a single-use HTTPS form posts directly to the secrets service; never echo the value or save it in the browser after submission. For vendor partner programs, hold Crankshaft application credentials separately from each dealer grant/subscription. A dealer cannot grant partner certification simply by pasting its own token.</p>
+<p>Store secrets in a managed vault/KMS with envelope encryption and a reference in <code>provider_connection</code>, never plaintext in application tables, analytics, client JavaScript, CSV, logs or support screenshots. Record only provider, scopes, created/last-tested/expiry, fingerprint/last four where safe, and secret version. Restrict retrieval to that connector worker and tenant, rotate/revoke with audit, redact HTTP tracing, and disable outbound jobs on failed validation or revoked scope. SFTP adapters pin host keys, use per-dealer SSH keys and isolated folders; webhook receivers check signature, timestamp, replay window and tenant binding. Use TLS, least-privilege scopes, per-tenant rate limits, encrypted backups, and an operator break-glass log.</p>
+<p><strong>CSV fallback:</strong> export RFC 4180 UTF-8 <code>inventory-listings-v1.csv</code> (one row per stock/version/destination) with <code>stock_id,vin,year,make,model,trim,price,mileage,availability,title,description,features,required_disclosures,hero_image_url,image_urls,video_urls,call_tracking_number,approved_at,version_hash</code>; serialize array fields as JSON arrays inside correctly quoted CSV cells. Separate <code>media-manifest.json</code> carries filenames, ordering, SHA-256, mime type, dimensions and expiring signed URLs; optional ZIP serves importers that require local files. Export <code>calls-v1.csv</code> and <code>outcomes-template-v1.csv</code> separately; do not put caller PII into public listing exports. Include schema version, timezone/UTC, a sample file, field guide and row-level validation report. A human downloads or a dealer-approved SFTP endpoint receives the file. Mark state <code>exported</code>, then record importer acknowledgment or dealer confirmation; do not call it published from file creation alone.</p>
+<h2>5. Dealer DMS, CRM, inventory and syndication systems</h2>
+<p><strong>Status legend:</strong> <code>API/partner</code> = documented interface but Crankshaft must obtain partner credentials/approval; <code>feed/export</code> = documented transfer route, not evidence of a general write API; <code>research gate</code> = product exists but a public listing-write contract was not found. These statuses describe evidence as of 11 October 2026, not a promise of access.</p>
+<table>
+<thead>
+<tr>
+<th>Provider/product</th>
+<th>Documented route and Crankshaft adapter plan</th>
+<th>Access gate / primary source</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CDK Global DMS / Elead CRM via Fortellis</td>
+<td>Fortellis APIs use OAuth plus subscription/dealer authorization. Implement inventory/CRM operations only from subscribed API products; use Elead Direct Post for leads where entitled.</td>
+<td>API/partner; <a href="https://docs.fortellis.io/docs/general/overview/getting-started">Fortellis getting started</a>, <a href="https://docs.fortellis.io/docs/general/api-directory-marketplace/api-directory/">API directory</a>, <a href="https://docs.fortellis.io/docs/general/making-calls/make-a-call/">calling APIs</a>.</td>
+</tr>
+<tr>
+<td>Tekion DMS / Automotive Partner Cloud</td>
+<td>Partner APIs/webhooks and dealer-controlled access; build adapter after APC agreement and scopes are issued.</td>
+<td>API/partner; <a href="https://tekion.com/products/apc">Tekion APC</a>.</td>
+</tr>
+<tr>
+<td>Dealertrack DMS / OpenTrack</td>
+<td>Certified OpenTrack integration, with vendor/dealer approval and product-specific rights; normalize inventory/outcomes only after endpoint grant.</td>
+<td>API/partner; <a href="https://www.coxautoinc.com/terms/wp-content/uploads/sites/3/Dealertrack-Open-track-Integration-Agreement-v4-10-16-19.pdf">Dealertrack OpenTrack agreement</a>.</td>
+</tr>
+<tr>
+<td>Reynolds ERA / POWER</td>
+<td>Reynolds Certified Interface and Data Management are the documented partner/export route; do not assume self-service write API.</td>
+<td>API/partner or export; <a href="https://www.reyrey.com/company/reynolds-data-management">Reynolds Data Management</a>.</td>
+</tr>
+<tr>
+<td>PBS Systems</td>
+<td>PartnerHub offers registered partners API access (SOAP/XML/JSON/REST); build product-specific adapter after registration.</td>
+<td>API/partner; <a href="https://www.pbssystems.com/partners">PBS partners</a>, <a href="https://partnerhub.pbsdealers.com/">PartnerHub</a>.</td>
+</tr>
+<tr>
+<td>Autosoft DMS</td>
+<td>Autosoft Connect advertises STAR real-time APIs and Batch/FTP; select per dealer entitlement.</td>
+<td>API/partner or feed; <a href="https://autosoftdms.com/become-a-partner/">Autosoft partner program</a>.</td>
+</tr>
+<tr>
+<td>DealerBuilt Lightyear</td>
+<td>Certified web-service API supports partner read/write to DMS, with scheduled batch export alternative.</td>
+<td>API/partner; <a href="https://dealerbuilt.com/dms-platform/open-integration-platform/">DealerBuilt certified API</a>.</td>
+</tr>
+<tr>
+<td>Dominion VUE / SecureVUE</td>
+<td>Certified third-party SecureVUE APIs and partner portal; obtain endpoint scopes for inventory/sales data before implementation.</td>
+<td>API/partner; <a href="https://www.dominiondms.com/integration/integrated/">Dominion integration program</a>, <a href="https://vueintegration.dominiondms.com/">partner portal</a>.</td>
+</tr>
+<tr>
+<td>Quorum QDMS / DealerMine</td>
+<td>Quorum describes open APIs; DealerMine announced data-access APIs. Require product-specific inventory/CRM scopes and write validation.</td>
+<td>API/partner; <a href="https://quorumdms.com/solutions/">Quorum solutions</a>, <a href="https://quorumdms.com/newsletter-april-2026-qdms/">DealerMine API announcement</a>.</td>
+</tr>
+<tr>
+<td>Solera DealerSocket CRM / Inventory+ / iDMS / Auto/Mate</td>
+<td>Certified partner path; obtain product-specific docs. Until granted, use dealer exports/lead CSV.</td>
+<td>API/partner, write scope unverified; <a href="https://www.solera.com/solutions/dealers/dealersocket/">DealerSocket suite</a>, <a href="https://dealersocket.com/resources/certified-partners/">certified partners</a>.</td>
+</tr>
+<tr>
+<td>Cox VinSolutions CRM</td>
+<td>Partner integrations have agreement/controlled API access; use for lead/outcome only after certification.</td>
+<td>API/partner; <a href="https://www.vinsolutions.com/dealership-software/integrations/">VinSolutions integrations</a>, <a href="https://www.coxautoinc.com/terms/wp-content/uploads/sites/3/VinSolutions-Integration-Agreement.pdf">agreement</a>.</td>
+</tr>
+<tr>
+<td>DriveCentric CRM</td>
+<td>Partner API explicitly accepts lead, consumer and vehicle data; agreement/documentation access precedes build. Outcome-read scope needs verification.</td>
+<td>API/partner; <a href="https://drivecentric.com/resources/partner-program">DriveCentric partner program</a>.</td>
+</tr>
+<tr>
+<td>DealerPeak CRM</td>
+<td>REST/JSON OpenAPI can use vendor or dealership key; documentation available on request. Map lead/staff/outcome endpoints only after receiving actual scope.</td>
+<td>API/partner; <a href="https://www.dealerpeak.com/api-technology/">DealerPeak API</a>.</td>
+</tr>
+<tr>
+<td>ProMax Complete CRM</td>
+<td>CRM/DMS integrations exist, but no public general external write contract established in this research. Use agreed partner route or CSV.</td>
+<td>Research gate; <a href="https://www.promaxunlimited.com/complete-crm-frequently-asked-questions/">ProMax CRM FAQ</a>.</td>
+</tr>
+<tr>
+<td>AutoRaptor CRM</td>
+<td>Lead integration is described, but public API/write scope is not established here. Use agreed provider route or CSV.</td>
+<td>Research gate; <a href="https://www.autoraptor.com/automotive-dealership-crm-faq">AutoRaptor CRM FAQ</a>.</td>
+</tr>
+<tr>
+<td>AutoManager DeskManager / WebManager</td>
+<td>Data Exchange and inventory import/export documented. Build standard import/export mapping; direct listing write remains unverified.</td>
+<td>Feed/export; <a href="https://support.automanager.com/hc/en-us/articles/7816866933531-WebManager-Data-Exchange">Data Exchange</a>, <a href="https://support.automanager.com/hc/en-us/articles/7957202992411-WebManager-Inventory-Imports">Inventory Imports</a>.</td>
+</tr>
+<tr>
+<td>DealerCenter</td>
+<td>DealerCenter documents automatic inventory import and third-party export. Use feed/CSV mapping; API access requires separate confirmation.</td>
+<td>Feed/export; <a href="https://support.dealercenter.net/hc/en-us/articles/115003197366-How-to-Automatically-Import-Inventory-into-DealerCenter">inventory import</a>.</td>
+</tr>
+<tr>
+<td>Frazer</td>
+<td>Dealer-configured CSV/TXT vehicle uploads over FTP to selected destinations; implement file generator and acknowledgment, not a presumed API.</td>
+<td>Feed/export; <a href="https://www.frazerhelp.com/help-manual/vehicle_uploads.htm">Frazer vehicle uploads</a>, <a href="https://www.frazerhelp.com/help-manual/technical-details-and-custom-u.htm">technical export</a>.</td>
+</tr>
+<tr>
+<td>Dealer.com inventory / website</td>
+<td>Public developer inventory interface is read-oriented for authorized clients; do not infer listing-write permission. Use an approved Dealer.com/parent inventory route or CSV.</td>
+<td>Read API, write unverified; <a href="https://developer.inv.dealer.com/">Dealer.com inventory developer docs</a>.</td>
+</tr>
+<tr>
+<td>vAuto Provision</td>
+<td>Inventory/merchandising and distribution product; seek vendor-authorized feed/API contract for write.</td>
+<td>Research gate; <a href="https://www.vauto.com/products/provision/">vAuto Provision</a>.</td>
+</tr>
+<tr>
+<td>HomeNet</td>
+<td>Syndication hub distributes inventory/media to advertising sites. Prefer one approved hub ingestion over duplicate marketplace adapters; get partner feed contract.</td>
+<td>Feed/partner; <a href="https://www.homenetauto.com/products/syndication/">HomeNet syndication</a>.</td>
+</tr>
+<tr>
+<td>Dealerslink</td>
+<td>Documented inventory imports/exports and dealer-directed syndication; establish standard feed with vendor.</td>
+<td>Feed/partner; <a href="https://public.dealerslink.com/3-common-questions-for-our-service/">Dealerslink service</a>.</td>
+</tr>
+<tr>
+<td>Dealer Car Search</td>
+<td>Inventory platform exports to many listing destinations; implement approved ingestion/export profile.</td>
+<td>Feed/partner; <a href="https://www.dealercarsearch.com/inventory-platform">inventory platform</a>.</td>
+</tr>
+<tr>
+<td>Carsforsale.com dealer IMS</td>
+<td>Dealer product manages listings and exports broadly; developer feed route needs formal terms and a tested product contract.</td>
+<td>Feed/partner; <a href="https://dealers.carsforsale.com/inventory-management-tools/">inventory tools</a>, <a href="https://developers.carsforsale.com/">developers</a>.</td>
+</tr>
+</tbody></table>
+<p><strong>CRM routing rule:</strong> CRM integration and Crankshaft&#39;s staff directory are separate. A CRM staff list can seed the directory, but the admin confirms each live destination and fallback. The portal still records call attempts/answers when the CRM is down. A CRM lead ID is a linked external reference, not the primary Crankshaft call ID.</p>
+<h2>6. Listing and advertising destinations</h2>
+<p>“API” below means a documented relevant route, <strong>not</strong> that a random dealer token gives Crankshaft posting rights. Distinguish dealer inventory publication, paid catalog ads, auction submission, and aggregator syndication. Destination-specific terms, fees, image rules and required disclosures are versioned in <code>CapabilityManifest</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Destination</th>
+<th>Researched integration route</th>
+<th>Build decision / primary source</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dealer website</td>
+<td>Preferred first live VDP via dealer&#39;s website CMS or syndicator.</td>
+<td>Ingest once through authorized provider; verify exact VDP and call number. Vendor-specific route.</td>
+</tr>
+<tr>
+<td>Autotrader + Kelley Blue Book</td>
+<td>Dealer listing packages and inventory publishing, often through the dealer&#39;s inventory supplier/HomeNet; public self-service listing-write API not established here.</td>
+<td>Partner/feed adapter, then live check; <a href="https://b2b.autotrader.com/dealer-marketing/vehicle-listings/">Autotrader dealer listings</a>.</td>
+</tr>
+<tr>
+<td>Cars.com</td>
+<td>Dealer inventory feed is documented; direct public listing-write API not established here.</td>
+<td>Partner/feed adapter; <a href="https://www.cars.com/articles/cars-coms-new-first-of-its-kind-ai-video-solution-turns-every-vehicle-into-high-intent-sales-engine-523944/">Cars.com feed reference</a>.</td>
+</tr>
+<tr>
+<td>CarGurus + Autolist</td>
+<td>CarGurus acknowledges dealer inventory feeds and IMS syndication; subscribing inventory is syndicated to Autolist.</td>
+<td>Partner/feed adapter, avoid duplicate Autolist post; <a href="https://dealers.cargurus.com/blog/fee-transparency-update">feed reference</a>, <a href="https://dealers.cargurus.com/blog/upcoming-tests-on-autolist-com-to-capture-more-shoppers">Autolist syndication</a>.</td>
+</tr>
+<tr>
+<td>CARFAX Used Car Listings</td>
+<td>Dealer listing program and inventory-management partners.</td>
+<td>Partner/feed route; <a href="https://www.carfaxfordealers.com/car-listings">CARFAX listings</a>, <a href="https://www.carfaxfordealers.com/wp-content/uploads/2023/01/OnePager_-Advantage.pdf">partner integration reference</a>.</td>
+</tr>
+<tr>
+<td>TrueCar</td>
+<td>Dealer network takes inventory; dealer agreement describes DMS sales feeds.</td>
+<td>Partner/feed route, separate outcome permission; <a href="https://dealerportal.truecar.com/">TrueCar dealer network</a>, <a href="https://www.truecar.com/legal/termsandconditions_0D03.html">dealer terms</a>.</td>
+</tr>
+<tr>
+<td>Edmunds</td>
+<td>Dealer Premier exposes inventory; public developer listing documentation is a <strong>read</strong> API, not a write route.</td>
+<td>Dealer partner/feed for publication; use read API only under its access terms. <a href="https://www.edmunds.com/press/edmunds-launches-premier-a-revamped-dealer-program-to-better-connect-shoppers-and-dealers.html">Dealer program</a>, <a href="https://developer.edmunds.com/api-documentation/inventory/vehicle_listings/v1/02_listings_by_zip/api-response">inventory read docs</a>.</td>
+</tr>
+<tr>
+<td>Carsforsale.com</td>
+<td>Dealer IMS/export channel supports own marketplace and broad distribution.</td>
+<td>Approved dealer IMS/partner feed; <a href="https://dealers.carsforsale.com/inventory-management-tools/">inventory management</a>.</td>
+</tr>
+<tr>
+<td>OfferUp Autos</td>
+<td>Verified Dealer program provides dealer inventory exposure and CRM tools; public write API not established here.</td>
+<td>Dealer program/approved feed only; <a href="https://autos.offerup.com/">OfferUp Autos</a>.</td>
+</tr>
+<tr>
+<td>Facebook/Instagram automotive catalog ads</td>
+<td>Meta catalog product feed/API is a catalog advertising path; it is <strong>not proof</strong> of general organic Marketplace vehicle posting API.</td>
+<td>Build feed/catalog adapter only with Meta business permissions and vehicle-catalog eligibility; <a href="https://developers.facebook.com/documentation/ads-commerce/catalog/guides/feed-api">Meta feed API</a>.</td>
+</tr>
+<tr>
+<td>Craigslist for-sale-by-dealer</td>
+<td>Official bulk RSS HTTPS posting interface, access case-by-case for high-volume paid categories; account authorization required.</td>
+<td>Build validated RSS adapter only after bulk access approval; otherwise CSV/portal task. API supports new posts and some account operations; do not treat same ID as an edit. <a href="https://www.craigslist.org/about/bulk_posting_interface">Craigslist bulk interface</a>.</td>
+</tr>
+<tr>
+<td>Google Vehicle Ads</td>
+<td>Merchant API vehicle data source and offers, linked to Merchant Center/Ads/Business Profile or store feed. This is paid ads, not a universal organic listing post.</td>
+<td>Build Merchant API adapter after account eligibility; <a href="https://support.google.com/merchants/answer/17066350?hl=en">Vehicle Ads Merchant API</a>, <a href="https://support.google.com/merchants/answer/16857388?hl=en">setup</a>.</td>
+</tr>
+<tr>
+<td>eBay Motors</td>
+<td>Trading API supports motor-vehicle listings with site ID 100, category/format rules, VIN and item specifics; the VIN-catalog UI flow is not supported by the API.</td>
+<td>Direct API adapter if seller account and category permit it; <a href="https://www.developer.ebay.com/api-docs/user-guides/static/trading-user-guide/ebay-motors-create-listing.html">create Motors listing</a>, <a href="https://developer.ebay.com/api-docs/user-guides/static/trading-user-guide/ebay-motors-item-specifics.html">item specifics</a>.</td>
+</tr>
+<tr>
+<td>Bring a Trailer</td>
+<td>Editorial auction submission/review; exclusive auction terms may apply. No public automated listing-write API established.</td>
+<td>Produce auction-ready package and human submission task; <a href="https://bringatrailer.com/policies/">selling policy</a>, <a href="https://bringatrailer.com/faq/">FAQ</a>.</td>
+</tr>
+<tr>
+<td>Cars &amp; Bids</td>
+<td>Editorial acceptance and listing preparation by site team; no public automated listing-write API established.</td>
+<td>Auction-ready package/human submission; follow their media/condition rules; <a href="https://webhooks.carsandbids.com/sell-car/">sell process</a>, <a href="https://merch.carsandbids.com/pages/terms-of-use">terms</a>.</td>
+</tr>
+<tr>
+<td>Hemmings</td>
+<td>Dealer showroom/classified marketplace. Public listing-write API not established in this research.</td>
+<td>Dealer partnership or human package; <a href="https://assets-origin-aws.hemmings.com/dealers">dealer showroom</a>.</td>
+</tr>
+<tr>
+<td>ClassicCars.com</td>
+<td>Dealer Network supports classified and auction listings; manual add-listing flow is public. No public dealer-write API established here.</td>
+<td>Dealer partnership/feed if granted, otherwise prepared package/manual submission; <a href="https://classiccars.com/join-the-dealer-network">dealer network</a>, <a href="https://classiccars.com/listing/add/regular">add listing</a>.</td>
+</tr>
+<tr>
+<td>Other dealer-feed destinations</td>
+<td>Dealer Car Search and Frazer list destinations including Facebook, Craigslist, Cars.com, CarGurus, CARFAX and TrueCar; a feed partner can reach several at once.</td>
+<td>Add destination only after written intake contract, field map and live readback; <a href="https://www.dealercarsearch.com/inventory-platform">Dealer Car Search</a>, <a href="https://www.frazerhelp.com/help-manual/uploads-that-can-handpick-vehi.htm">Frazer selection</a>.</td>
+</tr>
+</tbody></table>
+<p>An “all sites” badge is earned only for destinations with a tested route; the catalog is a product backlog, not an automated publishing claim. Before adding any named site, collect its current API/feed schema, authentication method, allowed dealer accounts, image/video limits, edit/delete semantics, review time, fees, error codes and production test receipt. Auction venues are a separate workflow and cannot be promised as routine inventory syndication. Future RV/boat/powersport destinations use category-specific required fields and their own capability tests.</p>
+<h2>7. Build sequence and acceptance</h2>
+<p><strong>Slice A:</strong> staff directory + call ledger + existing verifier/SignalWire event bridge. Replay calls with two transfer attempts, one answer, no-answer fallback and a corrected staff assignment; show the same result in portal and <code>calls-v1.csv</code>. Ensure portal/DB failure does not delay live transfer.</p>
+<p><strong>Slice B:</strong> connection UI + vault + manifest registry + CSV inventory/listing/call exports. Exercise key rotation, revoked scope, wrong tenant, bad SFTP host key, malformed row and receipt reconciliation. Publish the canonical schemas and vendor fixture harness before parallel adapters.</p>
+<p><strong>Slice C:</strong> first authorized inventory source and primary website/syndicator publisher, then one CRM lead/outcome connector. Require ten real pilot stocks, sold withdrawal, price revision, approval invalidation, receipt/live check, qualified-call-to-agent display and CRM outcome reconciliation.</p>
+<p><strong>Slice D:</strong> partner/API connector families (Fortellis, Tekion, OpenTrack, PBS, DealerBuilt) and feed families (HomeNet, DealerCenter, AutoManager, Frazer), prioritized by signed dealer demand and actual partner credentials. Marketplace adapters follow their own permission gates. All adapters run the same contract suite and are switchable per tenant.</p>
+<p><strong>No consultancy dependency:</strong> a dealer supplies the provider, product, location IDs, authorization and any allowed feed path through fixed screens. Crankshaft maintains provider presets and supports exception tickets when a vendor&#39;s contract varies. A partner agreement is a product enablement requirement, not a dealer-specific software inspection project. The portal remains functional in CSV mode throughout.</p>
+</main><footer>Crankshaft · Internal planning package · October 2026</footer></body></html>

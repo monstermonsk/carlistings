@@ -4,7 +4,7 @@
 
 ## What we do
 
-Crankshaft improves inventory presentation and inbound call handling. Listing Tuner writes from dealer-supplied facts, polishes and orders real vehicle photos, and cuts clips from supplied footage. The dealer supplies condition, options and online-disclosure instructions. We highlight positives without making obvious false statements or fabricating vehicle imagery. Jev may select candidate video moments; an editor checks the final clips. Our call verifier answers, qualifies intent, checks availability, enriches qualified leads and routes them to an available salesperson. We log the outcome and send an approved CRM summary.
+Crankshaft improves inventory presentation and inbound call handling. Listing Tuner writes from dealer-supplied facts, polishes and orders real vehicle photos, and cuts clips from supplied footage. The dealer supplies condition, options and online-disclosure instructions. We highlight positives without making obvious false statements or fabricating vehicle imagery. Jev may select candidate video moments; an editor checks the final clips. Our call verifier answers, qualifies intent, checks availability, enriches qualified leads and routes them to an available salesperson. The Crankshaft dealer portal keeps the sales roster and a record of every received call, attempted route and actual answered agent. It sends approved lead summaries to a connected CRM when supported or provides CSV output.
 
 ## Plans proposed for pilot validation
 
@@ -20,7 +20,7 @@ There are **no separate voice-minute, token or verifier-decision charges**. The 
 
 ## What the dealer provides
 
-The dealer provides an authorized inventory feed, rights to the media, verified stock/price/availability, its listing and disclosure instructions, publishing and CRM access, approved call script, staff roster, backup route and an approver. The dealer owns its accounts, numbers, inventory, prices and sales process. Crankshaft never changes an asking price independently.
+The dealer chooses its inventory and CRM products in the standardized Crankshaft Connections screen, grants available API/feed access or uses CSV, and provides rights to the media, verified stock/price/availability, listing and disclosure instructions, approved call script, staff roster, backup route and an approver. The dealer owns its accounts, numbers, inventory, prices and sales process. Crankshaft never changes an asking price independently.
 
 ## Review and acceptance
 

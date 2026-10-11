@@ -16,7 +16,7 @@
 | Existing SignalWire route regression tested | Call lead | New event bridge leaves normal/after-hours/service/emergency/fallback and transfer-answer behavior unchanged |
 | Existing OpenAI verifier bridge tested | Call lead | 30-call edge-case replay, structured buyer-interest events, inventory freshness and no added live-call latency |
 | Enrichment gate tested | Privacy owner | External lookup only after qualified event, consent/policy check and purpose log |
-| CRM handoff tested | Integration lead | Idempotent lead, receipt, retry and cross-tenant isolation proof |
+| Dealer portal and CRM/CSV paths tested | Integration lead | Staff directory, attempted/answered agent call ledger, idempotent CRM lead receipt where authorized, CSV export fallback, retry and cross-tenant isolation proof |
 | Listing-to-call feedback joined | Data lead | Existing verifier event maps to the live listing version with stock-match method/confidence; unattributed calls remain separate |
 | Dealer outcomes joined | Data lead | Appointment and confirmed retail-sale receipts distinct from wholesale, transfer and unknown removal |
 | ML gate documented | ML lead | Rights-cleared labels, dealer/time holdouts, rules baseline and shadow-mode evaluation before any automatic recommendation |

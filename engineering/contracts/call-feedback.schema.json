@@ -8,6 +8,7 @@
   "properties": {
     "schema_version": {"const": 1},
     "tenant_id": {"type": "string", "minLength": 1},
+    "location_id": {"type": ["string", "null"]},
     "call_id": {"type": "string", "minLength": 1},
     "occurred_at": {"type": "string", "format": "date-time"},
     "qualification": {"enum": ["qualified", "unqualified", "uncertain"]},
@@ -16,6 +17,9 @@
     "feature_interests": {"type": "array", "items": {"type": "string"}},
     "objections": {"type": "array", "items": {"enum": ["price", "mileage", "condition", "missing_feature", "availability", "other"]}},
     "transfer": {"enum": ["agent_answered", "attempted_no_answer", "callback_queued", "not_attempted", "unknown"]},
+    "transfer_attempts": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["transfer_attempt_id", "staff_id", "status", "started_at"], "properties": {"transfer_attempt_id": {"type": "string"}, "staff_id": {"type": "string"}, "signalwire_leg_id": {"type": ["string", "null"]}, "status": {"enum": ["attempted", "ringing", "answered", "no_answer", "failed", "voicemail"]}, "started_at": {"type": "string", "format": "date-time"}, "answered_at": {"type": ["string", "null"], "format": "date-time"}}}},
+    "answered_staff_id": {"type": ["string", "null"]},
+    "final_disposition": {"type": ["string", "null"]},
     "crm_lead_id": {"type": ["string", "null"]},
     "listing_touch_id": {"type": ["string", "null"]},
     "model_version": {"type": "string"},
