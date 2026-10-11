@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://crankshaft.ai/schemas/listing-event-envelope-v1.json",
+  "title": "Crankshaft Listing Tuner event envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "event_type", "producer", "tenant_id", "occurred_at", "recorded_at", "trace_id", "payload"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "event_id": {"type": "string", "minLength": 1},
+    "event_type": {"type": "string", "enum": ["stock.changed", "stock.sold_or_removed", "media.batch_completed", "call.finalized", "call.qualification_corrected", "call.transfer_answered", "crm.appointment_confirmed", "crm.sale_confirmed", "crm.other_exit", "listing.draft_ready", "listing.needs_input", "listing.approved", "listing.publish_requested", "listing.published", "listing.live_mismatch", "listing.withdrawn", "ml.recommendation_created"]},
+    "producer": {"type": "string", "minLength": 1},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "stock_lifecycle_id": {"type": ["string", "null"]},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "source_revision": {"type": ["string", "null"]},
+    "trace_id": {"type": "string", "minLength": 1},
+    "payload": {"type": "object"}
+  }
+}

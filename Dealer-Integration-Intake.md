@@ -13,6 +13,11 @@ Complete one copy per dealer before any live connector or call route. Store cred
 | Syndicator/website/marketplace destinations and write authority |  |
 | Approval contact and fields requiring fresh approval |  |
 | CRM product, endpoint/ADF address, test contact and receipt method |  |
+| CRM appointment, showroom visit, offer and retail-sale status fields; lead/stock join keys |  |
+| Inventory status distinctions: active, retail sold, wholesale, transfer, auction, unknown removal |  |
+| Listing exposure data available: impressions, detail views, clicks, tracking number and placement |  |
+| Existing Crankshaft verifier event endpoint/format, call ID, stock-interest and qualification fields |  |
+| Existing verifier-to-CRM lead ID/receipt and retention/consent controls |  |
 | Sales DID/number, service/parts/after-hours numbers |  |
 | Roster source, assignment order, timeout and fallback number |  |
 | Approved AI greeting, recording/consent and retention policy |  |

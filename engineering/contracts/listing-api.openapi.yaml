@@ -1,0 +1,292 @@
+openapi: 3.1.0
+info:
+  title: Crankshaft Listing Tuner internal API
+  version: 0.1.0-proposed
+  description: >-
+    Proposed canonical contract. WP-00 maps these paths to the existing
+    Crankshaft website/auth/verifier stack before implementation.
+servers:
+  - url: https://internal.example.invalid
+security:
+  - bearerAuth: []
+paths:
+  /v1/capture-batches:
+    post:
+      operationId: createCaptureBatch
+      summary: Create a dealer-scoped media upload batch
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [tenant_id, stock_lifecycle_id, expected_stock_revision, rights_receipt_id, files]
+              properties:
+                tenant_id: { type: string }
+                stock_lifecycle_id: { type: string }
+                expected_stock_revision: { type: string }
+                rights_receipt_id: { type: string }
+                files:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [client_file_id, kind, content_type, byte_size, sha256]
+                    properties:
+                      client_file_id: { type: string }
+                      kind: { type: string, enum: [photo, video] }
+                      content_type: { type: string }
+                      byte_size: { type: integer, minimum: 1 }
+                      sha256: { type: string, pattern: '^[a-fA-F0-9]{64}$' }
+      responses:
+        '201':
+          description: Batch and expiring direct-upload targets created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [batch_id, upload_targets]
+                properties:
+                  batch_id: { type: string }
+                  upload_targets:
+                    type: array
+                    items:
+                      type: object
+                      required: [client_file_id, url, expires_at]
+                      properties:
+                        client_file_id: { type: string }
+                        url: { type: string, format: uri }
+                        expires_at: { type: string, format: date-time }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/capture-batches/{batch_id}/complete:
+    post:
+      operationId: completeCaptureBatch
+      summary: Verify uploaded hashes and enqueue analysis once
+      parameters:
+        - $ref: '#/components/parameters/BatchId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '202':
+          description: Accepted after durable verification/event write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobReceipt'
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/stocks/{stock_lifecycle_id}/workbench:
+    get:
+      operationId: getStockWorkbench
+      summary: Current source revision, facts, media QA and listing state
+      parameters:
+        - $ref: '#/components/parameters/StockLifecycleId'
+      responses:
+        '200':
+          description: Dealer/operator-scoped review state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [stock_lifecycle_id, source_revision, state, facts, media, listing_versions]
+                properties:
+                  stock_lifecycle_id: { type: string }
+                  source_revision: { type: string }
+                  state: { type: string }
+                  facts: { type: array, items: { type: object } }
+                  media: { type: array, items: { type: object } }
+                  listing_versions: { type: array, items: { type: object } }
+  /v1/stocks/{stock_lifecycle_id}/drafts:
+    post:
+      operationId: createListingDraft
+      summary: Snapshot source and enqueue candidate generation
+      parameters:
+        - $ref: '#/components/parameters/StockLifecycleId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [expected_stock_revision, destinations]
+              properties:
+                expected_stock_revision: { type: string }
+                destinations: { type: array, minItems: 1, items: { type: string } }
+      responses:
+        '202':
+          description: Draft job queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobReceipt' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/jobs/{job_id}:
+    get:
+      operationId: getJob
+      summary: Job state and actionable reason codes
+      parameters:
+        - in: path
+          name: job_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Current durable job state
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobReceipt' }
+  /v1/listing-versions/{version_id}/approve:
+    post:
+      operationId: approveListingVersion
+      summary: Bind named dealer approval to content hash and source revision
+      parameters:
+        - $ref: '#/components/parameters/VersionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [content_sha256, expected_stock_revision, destinations]
+              properties:
+                content_sha256: { type: string, pattern: '^[a-fA-F0-9]{64}$' }
+                expected_stock_revision: { type: string }
+                destinations: { type: array, minItems: 1, items: { type: string } }
+      responses:
+        '200':
+          description: Approved immutable version
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [approval_id, approved_at, content_sha256]
+                properties:
+                  approval_id: { type: string }
+                  approved_at: { type: string, format: date-time }
+                  content_sha256: { type: string }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/listing-versions/{version_id}/publish:
+    post:
+      operationId: publishListingVersion
+      summary: Enqueue authorized idempotent destination writes
+      parameters:
+        - $ref: '#/components/parameters/VersionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [approval_id]
+              properties:
+                approval_id: { type: string }
+      responses:
+        '202':
+          description: Publish jobs queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobReceipt' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/listing-versions/{version_id}/publications:
+    get:
+      operationId: listPublications
+      summary: Provider receipts and live readback differences
+      parameters:
+        - $ref: '#/components/parameters/VersionId'
+      responses:
+        '200':
+          description: Per-destination publication state
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [destination, state]
+                  properties:
+                    destination: { type: string }
+                    state: { type: string, enum: [queued, accepted, live, mismatch, failed, manual_required, withdrawn] }
+                    external_id: { type: [string, 'null'] }
+                    live_url: { type: [string, 'null'], format: uri }
+                    diff_codes: { type: array, items: { type: string } }
+  /v1/integrations/verifier/events:
+    post:
+      operationId: ingestExistingVerifierEvent
+      summary: Ingest signed event without blocking live call handling
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: header
+          name: X-Crankshaft-Signature
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Must validate against event-envelope.schema.json; call payload against call-feedback.schema.json where applicable.
+      responses:
+        '202':
+          description: Event durably accepted or already received
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [event_id, accepted]
+                properties:
+                  event_id: { type: string }
+                  accepted: { type: boolean }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema: { type: string, minLength: 1 }
+    BatchId:
+      in: path
+      name: batch_id
+      required: true
+      schema: { type: string }
+    StockLifecycleId:
+      in: path
+      name: stock_lifecycle_id
+      required: true
+      schema: { type: string }
+    VersionId:
+      in: path
+      name: version_id
+      required: true
+      schema: { type: string }
+  responses:
+    Conflict:
+      description: Source revision, state or approval hash changed
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code, message]
+            properties:
+              code: { type: string }
+              message: { type: string }
+  schemas:
+    JobReceipt:
+      type: object
+      required: [job_id, state]
+      properties:
+        job_id: { type: string }
+        state: { type: string, enum: [queued, running, needs_input, succeeded, failed, canceled] }
+        reason_codes: { type: array, items: { type: string } }
+        artifact_ids: { type: array, items: { type: string } }

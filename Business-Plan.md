@@ -1,6 +1,6 @@
 # Crankshaft business plan
 
-**Decision document, 11 October 2026.** Crankshaft is the operating company and brand. Listing Tuner is a Crankshaft service. The existing listing service remains a managed service; the expansion links merchandising to verified inbound calls and routing. Client footage is edited into useful clips with Jev-assisted selection. Crankshaft does not become the seller of a dealer's vehicles.
+**Decision document, 11 October 2026.** Crankshaft is the operating company and brand. Listing Tuner is a Crankshaft service. The owner reports that the Crankshaft website, AI verifier and call routing are already built; the new build integrates listing production and outcome learning with those systems. Client footage is edited into useful clips with optional Jev-assisted selection. Crankshaft does not become the seller of a dealer's vehicles.
 
 ## Customer and problem
 
@@ -26,14 +26,14 @@ Use a paid ten-vehicle proof with a measured before/after audit and test calls b
 
 ## Operating plan
 
-- **Weeks 1–2:** signed dealer scope; brand and privacy language; source mapping; inventory snapshot; approval policy; define call-intent and routing matrix; baseline metrics.
-- **Weeks 3–4:** one read-only inventory adapter, copy/photo/video workbench, human QA, local/authorized publication path; SignalWire test number and OpenAI voice sandbox; CRM handoff in test.
-- **Weeks 5–6:** paid pilot on ten vehicles, at least 30 consented test/real calls across hours and edge cases, token and minute metering, rollback drills, and dealer acceptance.
+- **Weeks 1–2:** inspect existing website/verifier/routing contracts; signed dealer scope; source mapping; inventory snapshot; approval policy; baseline metrics and event schemas.
+- **Weeks 3–4:** one inventory adapter, capture and copy/photo/video workbench, human QA, authorized publication path, and event bridge from the existing verifier to listing analytics.
+- **Weeks 5–6:** paid pilot on ten vehicles, regression tests of existing call routing, dealer CRM/outcome joins, publication and rollback drills, and dealer acceptance.
 - **After pilot:** open additional vendor adapters and plans only when the actual economics and delivery hours fit the business model. Do not project scale from one integration.
 
 ## Data partnership and machine-learning expansion
 
-The upside plan assumes revenue-share agreements with listing-site owners grant bulk download or permitted crawling, plus rights to retain, label and train models on listing text, photos and video. Pursue 100,000–250,000 licensed listing lifecycles across partners as an initial scale target. Seek listing-level exposure and outcome data in the same contracts so Crankshaft can learn which presentation generates qualified buyers, not just mimic visible listings. Partner share becomes a distinct data-acquisition cost that must be negotiated and modeled before signing. If outcome data is unavailable, use the licensed corpus for visual representation and editorial labels, then rely on dealer pilots for conversion evidence. [Salesperson-to-listing operating plan](./Salesperson-to-Listing-Operating-Plan.md) specifies ingest, rights, deduplication, holdouts and model evaluation.
+The upside plan assumes revenue-share agreements with listing-site owners grant bulk download or permitted crawling, plus rights to retain, label and train models on listing text, photos and video. Pursue 100,000–250,000 licensed listing lifecycles across partners as an initial scale target. Seek listing-level exposure and outcome data in the same contracts so Crankshaft can learn which presentation generates qualified buyers, not just mimic visible listings. The existing AI verifier can supply structured buyer intent, questions, objections and qualification outcomes; dealer CRM/DMS events can confirm appointments and retail sales. These must be linked to the live listing version with stated attribution confidence. Partner share becomes a distinct data-acquisition cost in unit economics. If partner outcome data is unavailable, use that corpus for visual/editorial labels and rely on dealer pilots for conversion evidence. [Core media and ML engineering specification](./Core-Media-and-ML-Engineering-Spec.md) defines the joins, training labels, models, holdouts and experiments.
 
 The dealer field process is intentionally light: identify the stock/VIN, confirm the car, take prompted photos and a phone walkaround, and upload. Crankshaft owns VIN lookup, dealer attestation intake, ordinary media processing, copy, review, authorized delivery to the dealer's inventory software and distribution channels, and post-publication reconciliation. We take the dealer's word for condition and options, highlight positives and do not make obvious statements we know are false. Offer a free vPIC lookup by default, use dealer-owned decoder accounts where permitted, and budget an optional OEM/build-data provider when useful. Dedicated adapters target the dealer's syndication hub first, then approved platform feeds and portals. Cars launch first; category adapters later handle trucks, RVs, trailers, boats and powersports.
 

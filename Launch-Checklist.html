@@ -63,14 +63,14 @@
 <td>Candidate score log, deterministic edit list, complete visual/audio review and approval</td>
 </tr>
 <tr>
-<td>SignalWire route tested</td>
+<td>Existing SignalWire route regression tested</td>
 <td>Call lead</td>
-<td>DID mapping, normal/after-hours/service/emergency/fallback and transfer answer proof</td>
+<td>New event bridge leaves normal/after-hours/service/emergency/fallback and transfer-answer behavior unchanged</td>
 </tr>
 <tr>
-<td>OpenAI verifier tested</td>
+<td>Existing OpenAI verifier bridge tested</td>
 <td>Call lead</td>
-<td>30-call edge-case set, qualification evidence, inventory freshness, token ledger</td>
+<td>30-call edge-case replay, structured buyer-interest events, inventory freshness and no added live-call latency</td>
 </tr>
 <tr>
 <td>Enrichment gate tested</td>
@@ -81,6 +81,21 @@
 <td>CRM handoff tested</td>
 <td>Integration lead</td>
 <td>Idempotent lead, receipt, retry and cross-tenant isolation proof</td>
+</tr>
+<tr>
+<td>Listing-to-call feedback joined</td>
+<td>Data lead</td>
+<td>Existing verifier event maps to the live listing version with stock-match method/confidence; unattributed calls remain separate</td>
+</tr>
+<tr>
+<td>Dealer outcomes joined</td>
+<td>Data lead</td>
+<td>Appointment and confirmed retail-sale receipts distinct from wholesale, transfer and unknown removal</td>
+</tr>
+<tr>
+<td>ML gate documented</td>
+<td>ML lead</td>
+<td>Rights-cleared labels, dealer/time holdouts, rules baseline and shadow-mode evaluation before any automatic recommendation</td>
 </tr>
 <tr>
 <td>Billing tested</td>

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://crankshaft.ai/schemas/call-feedback-v1.json",
+  "title": "Structured verifier feedback for listing analytics v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "tenant_id", "call_id", "occurred_at", "qualification", "stock_interests", "transfer", "model_version", "policy_version"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "call_id": {"type": "string", "minLength": 1},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "qualification": {"enum": ["qualified", "unqualified", "uncertain"]},
+    "qualification_reasons": {"type": "array", "items": {"type": "string"}},
+    "stock_interests": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["stock_id", "confidence"], "properties": {"stock_id": {"type": "string"}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}, "evidence_ref": {"type": ["string", "null"]}}}},
+    "feature_interests": {"type": "array", "items": {"type": "string"}},
+    "objections": {"type": "array", "items": {"enum": ["price", "mileage", "condition", "missing_feature", "availability", "other"]}},
+    "transfer": {"enum": ["agent_answered", "attempted_no_answer", "callback_queued", "not_attempted", "unknown"]},
+    "crm_lead_id": {"type": ["string", "null"]},
+    "listing_touch_id": {"type": ["string", "null"]},
+    "model_version": {"type": "string"},
+    "policy_version": {"type": "string"},
+    "consent_state": {"type": ["string", "null"]}
+  }
+}

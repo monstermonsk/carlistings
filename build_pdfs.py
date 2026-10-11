@@ -106,6 +106,12 @@ def page_frame(canvas, doc):
 
 def render(md_path: Path, pdf_path: Path):
     lines = md_path.read_text(encoding="utf-8").splitlines()
+    styles = STYLES.copy()
+    if md_path.name == "Business-Plan.md":
+        styles["title"] = STYLES["title"].clone("BusinessPlanTitle", fontSize=20, leading=23, spaceAfter=8)
+        styles["h2"] = STYLES["h2"].clone("BusinessPlanH2", fontSize=12.5, leading=15, spaceBefore=9, spaceAfter=4)
+        styles["body"] = STYLES["body"].clone("BusinessPlanBody", fontSize=8.5, leading=11.4, spaceAfter=4)
+        styles["list"] = STYLES["list"].clone("BusinessPlanList", fontSize=8.5, leading=11.4, spaceAfter=2)
     story = []
     i = 0
     while i < len(lines):
@@ -123,20 +129,20 @@ def render(md_path: Path, pdf_path: Path):
                 story.extend([Spacer(1, 7), table, Spacer(1, 10)])
             continue
         if raw.startswith("# "):
-            story.append(Paragraph(inline(raw[2:]), STYLES["title"]))
+            story.append(Paragraph(inline(raw[2:]), styles["title"]))
         elif raw.startswith("## "):
-            story.append(Paragraph(inline(raw[3:]), STYLES["h2"]))
+            story.append(Paragraph(inline(raw[3:]), styles["h2"]))
         elif raw.startswith("### "):
-            story.append(Paragraph(inline(raw[4:]), STYLES["h3"]))
+            story.append(Paragraph(inline(raw[4:]), styles["h3"]))
         elif re.match(r"^([-*]|\d+\.)\s+", raw):
             text = re.sub(r"^([-*]|\d+\.)\s+", "", raw)
-            story.append(Paragraph("• " + inline(text), STYLES["list"]))
+            story.append(Paragraph("• " + inline(text), styles["list"]))
         else:
             paragraph = [raw]
             while i + 1 < len(lines) and lines[i+1].strip() and not re.match(r"^(#|\||[-*] |\d+\. )", lines[i+1].strip()):
                 i += 1
                 paragraph.append(lines[i].strip())
-            story.append(Paragraph(inline(" ".join(paragraph)), STYLES["body"]))
+            story.append(Paragraph(inline(" ".join(paragraph)), styles["body"]))
         i += 1
     pdf_path.parent.mkdir(parents=True, exist_ok=True)
     doc = SimpleDocTemplate(str(pdf_path), pagesize=letter, leftMargin=.65*inch, rightMargin=.65*inch, topMargin=.76*inch, bottomMargin=.65*inch, title=lines[0].lstrip("# "), author="Crankshaft")
