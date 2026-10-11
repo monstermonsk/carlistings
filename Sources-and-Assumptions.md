@@ -15,6 +15,18 @@ Research checked 10 October 2026. Vendor prices and API access can change; reche
 - [Fortellis developer network](https://docs.fortellis.io/docs/general/overview/getting-started), [API directory](https://docs.fortellis.io/docs/general/api-directory-marketplace/api-directory/), [Merchandisable Vehicles API](https://community.fortellis.io/merchandisable-vehicles-api/merchandisable-vehicles/apis): examples of dealership API paths, not a guarantee that a specific dealer grants Crankshaft access.
 - [ADF 1.0 lead format](https://adfxml.info/adf_spec.pdf): standard XML lead schema. CRM-specific mapping and acknowledgement still require testing.
 
+## Vehicle identity, option data, media and model training
+
+- [NHTSA vPIC API](https://vpic.nhtsa.dot.gov/api/): free VIN decoding, batch and standalone database; manufacturer-submitted VIN structure data and rate controls. It does not establish every installed option.
+- [Wenmar Open API](https://open.wenmarpro.com/docs): no-key free VIN/catalog API with published limits; its stated data source is vPIC, so it is not independent build proof.
+- [EPA FuelEconomy.gov web services](https://www.fueleconomy.gov/feg/ws/index.shtml): configuration fuel-economy data, not unit-specific VIN options.
+- [DataOne option-level VIN API](https://www.dataonesoftware.com/web-services-vin-decoder-api), [Auto.dev OEM Build Data](https://docs.auto.dev/v2/products/oem-build-data): candidate commercial sources for installed-option/build details. Access, coverage and pricing need a dealer/provider pilot.
+- [Torchvision MobileNetV3](https://docs.pytorch.org/vision/main/models/generated/torchvision.models.mobilenet_v3_small.html), [PyTorch transfer learning](https://docs.pytorch.org/tutorials/beginner/transfer_learning_tutorial): basis for the starter photo ranker; no training claim is made for the code in this package.
+- [FFprobe](https://ffmpeg.org/ffprobe.html), [FFmpeg filters](https://ffmpeg.org/ffmpeg-filters.html): media inspection and rendering components, subject to footage quality and review.
+- [Born et al., Price Management in the Used-Car Market](https://www.econstor.eu/bitstream/10419/230775/1/irtg1792dp2018-065.pdf): published survival-analysis approach for used-car demand and price response; Crankshaft's cohort controls and success metrics still need its own data validation.
+
+The new operating plan assumes the founder can negotiate site-owner revenue-share agreements that explicitly grant bulk download/permitted crawling and model-training rights. Dataset targets and outcome-data access are plans, not current assets. The 40 observed marketplace cards are not used as training media in the public repository.
+
 ## Commercial comparison
 
 - [AutoJoy](https://www.autojoy.ai/), [iCarManager](https://icarmanager.com/), [SpaceStep](https://www.spacestep.ca/voice-ai-agent-for-car-dealerships): publicly stated voice pricing used for range checking, not like-for-like substitutes for a combined managed listing and verifier service.

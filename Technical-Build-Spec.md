@@ -2,6 +2,12 @@
 
 **Version 1, 10 October 2026.** Build target and acceptance contract, not a claim of live integrations. Crankshaft owns the platform and Listing Tuner workflow; the dealer remains source of truth and seller. Implement each dealer as a tenant. Start with one authorized source, one publishing path and one CRM destination, then add adapters.
 
+**Field-to-publication operating contract (11 October addition):** the salesperson identifies stock/VIN and uploads guided photos/video; Crankshaft performs the remaining listing work. The full capture, provenance, photo/video pipeline, licensed partner-data plan, decoder provider ladder and PyTorch roadmap are in [Salesperson-to-Listing Operating Plan](./Salesperson-to-Listing-Operating-Plan.md). Implement that document alongside this system specification.
+
+The owner-approved [listing accuracy standard](./Listing-Accuracy-Standard.md) governs media and copy: accept dealer attestations for condition and options, highlight positives, and block obvious falsehoods or fabricated depictions. Crankshaft does not independently inspect each vehicle.
+
+**Optimization orchestrator:** for each stock and channel, snapshot dealer-supplied facts, local comparable set, dealer objective and destination capabilities. Generate a bounded set of appealing real photo orders/crops, positive copy versions and video clips. Reject known false statements, fabricated vehicle depictions, wrong-stock content and omitted dealer-directed listing disclosures; score survivors using market-matched demand and qualified-lead models with uncertainty; route the selected version for approval and publish. Save the candidate set and decision record so results can be compared later. Trigger reassessment on price/media/inventory changes, local supply shifts or falling cohort-adjusted engagement. The dealer owns price decisions; this service can surface price-position evidence without silently changing a price.
+
 ## 1. System boundary and data flow
 
 ```
@@ -45,12 +51,16 @@ Every vendor route needs dealer authorization, product/version, fields, rate lim
 | Voice | OpenAI Realtime via SIP or server-side audio bridge | Tool-controlled verification, structured decision events and usage logging; choose one transport pattern after latency tests. |
 | Video decision | TypeSafe/HE Jev API | Rank structured candidate clip intervals; deterministic editor renders clips. API credentials and commercial use terms to be procured. |
 | Enrichment | Dealer-approved first-party CRM first; optional licensed provider | Call only after qualification and consent/policy checks; attach source, timestamp and allowed purpose. No default people-search call. |
+| VIN identity and exact build | Free NHTSA vPIC; dealer's existing decoder/OEM access; optional paid build-data adapter | Normalize source and cost per lookup. vPIC/Wenmar-derived data checks identity; dealer attestation is sufficient for installed options. |
+| Licensed listing data partner | Contracted bulk feed/API or expressly permitted crawler | Ingest text/media/lifecycle and, ideally, exposure/outcomes. Track rights, deletion, partner share and model-use permission. |
 
 Fortellis provides a developer network and API directory, but exact dealer API subscriptions differ. [Fortellis docs](https://docs.fortellis.io/docs/general/overview/getting-started). ADF 1.0 defines lead, vehicle, customer and vendor data blocks; test the receiving CRM's actual flavor and acknowledgement. [ADF specification](https://adfxml.info/adf_spec.pdf).
 
 ## 4. Listing Tuner workflow paths
 
 **Normal:** scheduled feed/webhook → validate schema/rights → compare source version → identify missing/conflicting facts → draft copy → photo candidate transforms → candidate video intervals → QA → dealer approve → push through approved syndicator/portal → fetch live result → verify stock/price/identity/first image/contact route → report.
+
+**Mobile capture:** dealer login → stock/VIN scan and DMS match → prompted photo/video checklist → on-device retake hints → resumable uploads → original checksums and rights receipt → asynchronous media/fact jobs. Do not make a salesperson author ad copy or clips. **Destination adapter:** discovery of dealer DMS/syndicator and desired platforms → capability mapping → approved version upsert with idempotency key → provider receipt → live read-back → mismatch/latency alerts. For sold stock, cancel pending upserts and trigger authorized removal on every connected destination.
 
 **Source conflict:** freeze changed material fields, open dealer question, keep last approved live version if still valid, suppress new claims. **Missing media rights:** no derivative/publish. **Destination rejects:** retry only transient failures with backoff; permanent errors become operator tasks. **Sold/removed:** stop queued jobs immediately, withdraw wherever authorized, verify removal, alert dealer for manual paths. **Price change:** regenerate only affected fields, reapprove if the dealer's rules require it, publish, verify. **Channel forbids overlays/crop:** use clean master. **Wrong vehicle image:** quarantine asset and all derived versions.
 

@@ -4,7 +4,7 @@
 
 ## What we do
 
-Crankshaft improves inventory presentation and makes inbound interest more useful to the sales floor. Listing Tuner rewrites descriptions from dealer-verified facts, puts real vehicle photos in a clear order with modest truthful adjustments, and produces clips from footage the dealer supplies. Jev helps select candidate video moments; a human editor renders and checks each clip. On inbound calls, our verifier answers, asks focused questions, checks vehicle availability, qualifies intent, enriches the record after qualification and transfers the caller to the right available salesperson. We log the outcome and send an approved summary to the dealer's CRM.
+Crankshaft improves inventory presentation and inbound call handling. Listing Tuner writes from dealer-supplied facts, polishes and orders real vehicle photos, and cuts clips from supplied footage. The dealer supplies condition, options and online-disclosure instructions. We highlight positives without making obvious false statements or fabricating vehicle imagery. Jev may select candidate video moments; an editor checks the final clips. Our call verifier answers, qualifies intent, checks availability, enriches qualified leads and routes them to an available salesperson. We log the outcome and send an approved CRM summary.
 
 ## Plans proposed for pilot validation
 
@@ -20,12 +20,12 @@ There are **no separate voice-minute, token or verifier-decision charges**. The 
 
 ## What the dealer provides
 
-Authorized inventory feed or export; rights to photos and footage; stock/price/availability authority; mandatory fee, title, warranty and condition disclosures; access to the existing publishing route and CRM; approved greeting/consent text; on-duty roster and backup number; and a person who can sign off on listings and call policy. The dealer keeps ownership of its accounts, phone numbers, inventory, prices and sales process. Crankshaft never changes a dealer's asking price independently.
+The dealer provides an authorized inventory feed, rights to the media, verified stock/price/availability, its listing and disclosure instructions, publishing and CRM access, approved call script, staff roster, backup route and an approver. The dealer owns its accounts, numbers, inventory, prices and sales process. Crankshaft never changes an asking price independently.
 
 ## Review and acceptance
 
-We provide a versioned draft and side-by-side media review. Any unverified fact becomes a question rather than a claim. Dealer approval precedes publication through an authorized path. A listing is complete when the approved content is accepted and the live output is checked. A qualified call is counted only under the dealer-approved decision rules; a transfer is successful only when an agent answers or accepts it. Reports distinguish answered, qualified, transferred, missed transfer and follow-up needed.
+We provide a versioned draft and side-by-side media review. Dealer statements govern condition and options; invented facts and direct conflicts are flagged. Dealer approval precedes authorized publication, followed by a live check. Calls are qualified under dealer-approved rules. A transfer succeeds when an agent answers or accepts it. Reports distinguish answered, qualified, transferred, missed transfer and follow-up needed.
 
 ## Expected limitations
 
-Marketplace and DMS access depends on each vendor and dealer subscription. Some updates require a manual portal step. A listing or call service cannot guarantee ranking, lead volume, appointments or sales. The sample gallery is internal research using third-party listing thumbnails, not dealer-authorized production work. Voice, video and integration details are implemented only after the dealer-specific setup and pilot tests.
+Marketplace and DMS access depends on vendors and dealer subscriptions; some updates need a manual portal step. Ranking, lead volume, appointments and sales are not guaranteed. The sample gallery uses third-party thumbnails for internal research, not dealer-authorized production. Voice, video and integration details require dealer-specific setup and pilot tests.

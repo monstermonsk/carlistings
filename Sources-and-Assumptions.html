@@ -13,6 +13,17 @@
 <li><a href="https://docs.fortellis.io/docs/general/overview/getting-started">Fortellis developer network</a>, <a href="https://docs.fortellis.io/docs/general/api-directory-marketplace/api-directory/">API directory</a>, <a href="https://community.fortellis.io/merchandisable-vehicles-api/merchandisable-vehicles/apis">Merchandisable Vehicles API</a>: examples of dealership API paths, not a guarantee that a specific dealer grants Crankshaft access.</li>
 <li><a href="https://adfxml.info/adf_spec.pdf">ADF 1.0 lead format</a>: standard XML lead schema. CRM-specific mapping and acknowledgement still require testing.</li>
 </ul>
+<h2>Vehicle identity, option data, media and model training</h2>
+<ul>
+<li><a href="https://vpic.nhtsa.dot.gov/api/">NHTSA vPIC API</a>: free VIN decoding, batch and standalone database; manufacturer-submitted VIN structure data and rate controls. It does not establish every installed option.</li>
+<li><a href="https://open.wenmarpro.com/docs">Wenmar Open API</a>: no-key free VIN/catalog API with published limits; its stated data source is vPIC, so it is not independent build proof.</li>
+<li><a href="https://www.fueleconomy.gov/feg/ws/index.shtml">EPA FuelEconomy.gov web services</a>: configuration fuel-economy data, not unit-specific VIN options.</li>
+<li><a href="https://www.dataonesoftware.com/web-services-vin-decoder-api">DataOne option-level VIN API</a>, <a href="https://docs.auto.dev/v2/products/oem-build-data">Auto.dev OEM Build Data</a>: candidate commercial sources for installed-option/build details. Access, coverage and pricing need a dealer/provider pilot.</li>
+<li><a href="https://docs.pytorch.org/vision/main/models/generated/torchvision.models.mobilenet_v3_small.html">Torchvision MobileNetV3</a>, <a href="https://docs.pytorch.org/tutorials/beginner/transfer_learning_tutorial">PyTorch transfer learning</a>: basis for the starter photo ranker; no training claim is made for the code in this package.</li>
+<li><a href="https://ffmpeg.org/ffprobe.html">FFprobe</a>, <a href="https://ffmpeg.org/ffmpeg-filters.html">FFmpeg filters</a>: media inspection and rendering components, subject to footage quality and review.</li>
+<li><a href="https://www.econstor.eu/bitstream/10419/230775/1/irtg1792dp2018-065.pdf">Born et al., Price Management in the Used-Car Market</a>: published survival-analysis approach for used-car demand and price response; Crankshaft&#39;s cohort controls and success metrics still need its own data validation.</li>
+</ul>
+<p>The new operating plan assumes the founder can negotiate site-owner revenue-share agreements that explicitly grant bulk download/permitted crawling and model-training rights. Dataset targets and outcome-data access are plans, not current assets. The 40 observed marketplace cards are not used as training media in the public repository.</p>
 <h2>Commercial comparison</h2>
 <ul>
 <li><a href="https://www.autojoy.ai/">AutoJoy</a>, <a href="https://icarmanager.com/">iCarManager</a>, <a href="https://www.spacestep.ca/voice-ai-agent-for-car-dealerships">SpaceStep</a>: publicly stated voice pricing used for range checking, not like-for-like substitutes for a combined managed listing and verifier service.</li>

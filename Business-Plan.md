@@ -1,6 +1,6 @@
 # Crankshaft business plan
 
-**Decision document, 10 October 2026.** Crankshaft is the operating company and brand. Listing Tuner is a Crankshaft service. The existing listing service remains a managed service; the expansion links merchandising to verified inbound calls and routing. Client footage is edited into useful clips with Jev-assisted selection. Crankshaft does not become the seller of a dealer's vehicles.
+**Decision document, 11 October 2026.** Crankshaft is the operating company and brand. Listing Tuner is a Crankshaft service. The existing listing service remains a managed service; the expansion links merchandising to verified inbound calls and routing. Client footage is edited into useful clips with Jev-assisted selection. Crankshaft does not become the seller of a dealer's vehicles.
 
 ## Customer and problem
 
@@ -18,7 +18,7 @@ Crankshaft sells a managed quality and response layer over a dealer's existing s
 
 ## Delivery and account ownership
 
-The dealer supplies the inventory authority, source data, media rights, disclosure rules, seller contact data, publishing permission, and approved CRM destination. Crankshaft supplies adapters, drafting, QA, media derivatives, call orchestration, analytics, and the account team. The DMS or approved inventory system remains authoritative for stock, price, availability, and sold state. Human dealer sign-off is required for material listing content, image order and publication channels. Call routing rules and enrichment sources require written per-dealer configuration.
+The dealer supplies the inventory authority, source data, media rights, listing-disclosure instructions, seller contact data, publishing permission, and approved CRM destination. Dealer management owns condition/option statements and its sales-document and salesperson disclosure process. Crankshaft supplies adapters, drafting, QA, media derivatives, call orchestration, analytics, and the account team. The DMS or approved inventory system remains authoritative for stock, price, availability, and sold state. Human dealer sign-off is required for material listing content, image order and publication channels. Call routing rules and enrichment sources require written per-dealer configuration.
 
 ## Go-to-market
 
@@ -30,6 +30,13 @@ Use a paid ten-vehicle proof with a measured before/after audit and test calls b
 - **Weeks 3–4:** one read-only inventory adapter, copy/photo/video workbench, human QA, local/authorized publication path; SignalWire test number and OpenAI voice sandbox; CRM handoff in test.
 - **Weeks 5–6:** paid pilot on ten vehicles, at least 30 consented test/real calls across hours and edge cases, token and minute metering, rollback drills, and dealer acceptance.
 - **After pilot:** open additional vendor adapters and plans only when the actual economics and delivery hours fit the business model. Do not project scale from one integration.
+
+## Data partnership and machine-learning expansion
+
+The upside plan assumes revenue-share agreements with listing-site owners grant bulk download or permitted crawling, plus rights to retain, label and train models on listing text, photos and video. Pursue 100,000–250,000 licensed listing lifecycles across partners as an initial scale target. Seek listing-level exposure and outcome data in the same contracts so Crankshaft can learn which presentation generates qualified buyers, not just mimic visible listings. Partner share becomes a distinct data-acquisition cost that must be negotiated and modeled before signing. If outcome data is unavailable, use the licensed corpus for visual representation and editorial labels, then rely on dealer pilots for conversion evidence. [Salesperson-to-listing operating plan](./Salesperson-to-Listing-Operating-Plan.md) specifies ingest, rights, deduplication, holdouts and model evaluation.
+
+The dealer field process is intentionally light: identify the stock/VIN, confirm the car, take prompted photos and a phone walkaround, and upload. Crankshaft owns VIN lookup, dealer attestation intake, ordinary media processing, copy, review, authorized delivery to the dealer's inventory software and distribution channels, and post-publication reconciliation. We take the dealer's word for condition and options, highlight positives and do not make obvious statements we know are false. Offer a free vPIC lookup by default, use dealer-owned decoder accounts where permitted, and budget an optional OEM/build-data provider when useful. Dedicated adapters target the dealer's syndication hub first, then approved platform feeds and portals. Cars launch first; category adapters later handle trucks, RVs, trailers, boats and powersports.
+
 
 ## People and controls
 
@@ -43,6 +50,4 @@ Gate 1: zero invented material facts and zero altered-condition photos in a 50-l
 
 ## Principal risks
 
-30,000 tokens per verifier decision can make voice cost much higher than commodity AI receptionists; measure input/output mix, repeated decisions and call duration before committing to allowances. Marketplace rights and upload paths vary, so work from dealer-owned accounts and approved feeds. Jev is a decision engine for ranking candidate clips, not a video renderer. The editor must actually cut, inspect and approve. Vehicle data may change between drafting and a call; recheck availability on every relevant live call. API availability and commercial access vary by dealer/vendor; avoid promising universal plug-and-play integrations.
-
-See [Business Model](./Business-Model.md), [Build Spec](./Technical-Build-Spec.md), and [Sources](./Sources-and-Assumptions.md) for assumptions and implementation detail.
+Measure actual 30,000-token verifier decisions and call length before committing to allowances. Marketplace and DMS access varies by dealer; use contracted feeds and approved routes. Jev ranks candidate moments; editors cut and inspect the clips. Recheck stock before publication and each relevant call. Keep human fallbacks for stale data and failed transfers.

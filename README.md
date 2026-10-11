@@ -1,6 +1,6 @@
 # Crankshaft | car listings and verified calls
 
-Updated 10 October 2026. **Crankshaft** is the company and customer-facing brand. **Listing Tuner** is its managed listing service. This repository contains the current launch and build package; historical materials are excluded.
+Updated 11 October 2026. **Crankshaft** is the company and customer-facing brand. **Listing Tuner** is its managed listing service. This repository contains the current launch and build package; historical materials are excluded.
 
 ## Open these first
 
@@ -12,6 +12,9 @@ Updated 10 October 2026. **Crankshaft** is the company and customer-facing brand
 - [24-month financial model](./financials/Crankshaft-24-Month-Model.xlsx) and [model guide](./financials/Model-Guide.md): editable account, minutes, token cost, profit and cash forecast.
 - [Technical build specification](./Technical-Build-Spec.html): end-to-end architecture, all workflow paths, dealer integrations, APIs, event contracts, security, and acceptance tests.
 - [Media production specification](./Media-Workflows.html): detailed text, truthful photo, and Jev-assisted video workflows.
+- [Salesperson-to-listing operating plan](./Salesperson-to-Listing-Operating-Plan.html): automatic best-feasible listing loop for each car and local market, guided capture, VIN/build-data ladder, truthful media, dealer-system publishing, licensed partner data and PyTorch roadmap.
+- [Listing accuracy standard](./Listing-Accuracy-Standard.html): owner-approved rule for dealer attestations, positive merchandising, required disclosures and blocking obvious false statements.
+- [Developer starter](./ml/README.md): free vPIC adapter and untrained PyTorch photo ranker/training script.
 - [Dealer service guide](./Dealer-Service-Guide.html): current offer and client-facing scope.
 - [Dealer integration intake](./Dealer-Integration-Intake.html) and [launch checklist](./Launch-Checklist.html): pilot setup and release gates.
 - [40-listing review gallery](./samples/index.html): source-photo placeholders, scored listing cards, specific suggestions, and proposed copy. The source links may change because listings are live inventory.
