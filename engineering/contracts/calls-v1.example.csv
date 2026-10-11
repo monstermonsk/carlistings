@@ -1,0 +1,2 @@
+schema_version,tenant_id,location_id,call_id,started_at,ended_at,qualification,requested_stock_lifecycle_id,attempted_staff_ids,answered_staff_id,disposition,crm_lead_id,caller_display
+calls-v1,dealer-example,location-1,call-example-1,2026-10-11T15:02:00Z,2026-10-11T15:05:12Z,qualified,dealer-example:A104:2026-10-01,"[""staff-1"",""staff-2""]",staff-2,agent_answered,lead-example-1,***-***-0100
