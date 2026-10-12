@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Crankshaft Listing Tuner internal API
-  version: 0.2.0-proposed
+  version: 0.3.0-proposed
   description: >-
     Proposed canonical contract. WP-00 maps these paths to the existing
     Crankshaft website/auth/verifier stack before implementation.
@@ -212,10 +212,55 @@ paths:
                   required: [destination, state]
                   properties:
                     destination: { type: string }
-                    state: { type: string, enum: [queued, accepted, live, mismatch, failed, manual_required, withdrawn] }
+                    route_mode: { type: string, enum: [api, feed, browser_auto, browser_assist, dealer_task, csv] }
+                    state: { type: string, enum: [queued, preparing, awaiting_site_session, awaiting_human, submitted, accepted, live, live_unverified, ui_changed, mismatch, failed, exported, withdrawal_pending, withdrawn] }
                     external_id: { type: [string, 'null'] }
                     live_url: { type: [string, 'null'], format: uri }
                     diff_codes: { type: array, items: { type: string } }
+  /v1/publication-jobs/{publication_job_id}:
+    get:
+      operationId: getPublicationJob
+      summary: Read API/feed/browser job phase, checkpoint and redacted evidence
+      parameters:
+        - in: path
+          name: publication_job_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Tenant-scoped publication job
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PublicationJob' }
+  /v1/publication-jobs/{publication_job_id}/resume:
+    post:
+      operationId: resumePublicationJob
+      summary: Resume a paused browser/dealer checkpoint without duplicate submission
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: publication_job_id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [checkpoint_id, action, expected_listing_version_hash]
+              properties:
+                checkpoint_id: { type: string }
+                action: { type: string, enum: [confirmed, canceled, retry_after_review] }
+                expected_listing_version_hash: { type: string }
+      responses:
+        '202':
+          description: Resume accepted after state/hash checks
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PublicationJob' }
+        '409': { $ref: '#/components/responses/Conflict' }
   /v1/integrations/verifier/events:
     post:
       operationId: ingestExistingVerifierEvent
@@ -550,6 +595,21 @@ components:
               code: { type: string }
               message: { type: string }
   schemas:
+    PublicationJob:
+      type: object
+      required: [publication_job_id, tenant_id, listing_version_id, destination, route_mode, state]
+      properties:
+        publication_job_id: { type: string }
+        tenant_id: { type: string }
+        listing_version_id: { type: string }
+        destination: { type: string }
+        route_mode: { type: string, enum: [api, feed, browser_auto, browser_assist, dealer_task, csv] }
+        state: { type: string, enum: [queued, preparing, awaiting_site_session, awaiting_human, submitted, accepted, live, live_unverified, ui_changed, mismatch, failed, exported, withdrawal_pending, withdrawn] }
+        checkpoint_id: { type: [string, 'null'] }
+        external_id: { type: [string, 'null'] }
+        live_url: { type: [string, 'null'], format: uri }
+        evidence_refs: { type: array, items: { type: string }, description: Redacted receipt/screenshot references }
+        reason_codes: { type: array, items: { type: string } }
     DealerStaffInput:
       type: object
       additionalProperties: false
@@ -604,7 +664,12 @@ components:
         provider: { type: string }
         product: { type: string }
         manifest_version: { type: string }
-        auth_kind: { type: string, enum: [oauth, api_key, partner_grant, sftp, csv] }
+        auth_kind: { type: string, enum: [oauth, api_key, partner_grant, delegated_site_session, sftp, csv] }
+        supported_route_modes:
+          type: array
+          items: { type: string, enum: [api, feed, browser_auto, browser_assist, dealer_task, csv] }
+        permission_evidence_ref: { type: [string, 'null'] }
+        permission_reviewed_at: { type: [string, 'null'], format: date-time }
         capabilities:
           type: object
           additionalProperties: { type: boolean }

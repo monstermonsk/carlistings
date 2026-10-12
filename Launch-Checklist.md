@@ -7,6 +7,7 @@
 | Mobile capture rehearsed | Listing lead | Salesperson can scan stock/VIN, collect prompted views and video, and complete a resumable upload without writing copy |
 | Decoder sources mapped | Integration lead | vPIC response reconciled to DMS; dealer-owned or paid build-data permissions, installed-option coverage and per-lookup cost recorded |
 | Destination map approved | Integration lead | Dealer DMS/syndicator, each marketplace route, write permission, field limits, acknowledgements and live-readback method recorded |
+| Site automation approved | Automation lead | Existing Crankshaft runtime mapped; dealer/site permission for each workflow, duplicate suppression, login/MFA pause, submission evidence, live check, UI-change halt and sold withdrawal tested |
 | Partner dataset contracted | Founder + data lead | Site-owner revenue share, bulk download/crawl scope, media/model rights, deletion rules and exposure/outcome fields documented before partner-scale training |
 | System access authorized | Integration lead | Vendor account permissions, sandbox/test route and credential vault entries |
 | Inventory mapped | Listing lead | Stock/price/status/fees/mileage provenance and sold-event test |

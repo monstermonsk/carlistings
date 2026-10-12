@@ -4,7 +4,7 @@
 
 ## What we do
 
-Crankshaft improves inventory presentation and inbound call handling. Listing Tuner writes from dealer-supplied facts, polishes and orders real vehicle photos, and cuts clips from supplied footage. The dealer supplies condition, options and online-disclosure instructions. We highlight positives without making obvious false statements or fabricating vehicle imagery. Jev may select candidate video moments; an editor checks the final clips. Our call verifier answers, qualifies intent, checks availability, enriches qualified leads and routes them to an available salesperson. The Crankshaft dealer portal keeps the sales roster and a record of every received call, attempted route and actual answered agent. It sends approved lead summaries to a connected CRM when supported or provides CSV output.
+Listing Tuner writes from dealer-supplied facts, polishes real vehicle photos and cuts clips from supplied footage. We highlight positives without known false statements or fabricated vehicle imagery; Jev may select moments for editor review. Crankshaft's verifier answers, qualifies and routes calls to salespeople. The dealer portal holds the roster and records received calls, attempted routes and the agent who answered. Approved lead summaries go to a connected CRM or CSV.
 
 ## Plans proposed for pilot validation
 
@@ -16,11 +16,11 @@ Crankshaft improves inventory presentation and inbound call handling. Listing Tu
 | Edited clips from supplied footage | 10 | 25 | 50 |
 | AI verifier minutes included | 750 | 1,500 | 2,500 |
 
-There are **no separate voice-minute, token or verifier-decision charges**. The dashboard shows included AI minutes with alerts and a proposed plan upgrade as usage rises. If capacity is reached without an upgrade, new callers use the agreed human or callback route; calls are not silently dropped. International, premium-rate and outbound campaign traffic requires a separately agreed scope. A $495 ten-vehicle pilot is credited toward month one if a plan begins within 30 days. Connector setup that requires vendor fees or certification is separately scoped.
+There are **no separate voice-minute, token or verifier-decision charges**. The dashboard shows included minutes and upgrade alerts. At capacity, new callers use the agreed human or callback route. International, premium-rate and outbound campaigns require separate scope. A $495 ten-vehicle pilot is credited toward month one if a plan begins within 30 days. Vendor fees or certification are separately scoped.
 
 ## What the dealer provides
 
-The dealer chooses its inventory and CRM products in the standardized Crankshaft Connections screen, grants available API/feed access or uses CSV, and provides rights to the media, verified stock/price/availability, listing and disclosure instructions, approved call script, staff roster, backup route and an approver. The dealer owns its accounts, numbers, inventory, prices and sales process. Crankshaft never changes an asking price independently.
+The dealer selects its inventory and CRM products in Crankshaft, authorizes supported API/feed or website automation routes, and supplies media rights, current stock/price, condition/options and disclosure instructions, a call script, staff roster, fallback route and approver. CSV remains available. The dealer owns its accounts, numbers, prices and sales process; Crankshaft does not change an asking price independently.
 
 ## Review and acceptance
 
@@ -28,4 +28,4 @@ We provide a versioned draft and side-by-side media review. Dealer statements go
 
 ## Expected limitations
 
-Marketplace and DMS access depends on vendors and dealer subscriptions; some updates need a manual portal step. Ranking, lead volume, appointments and sales are not guaranteed. The sample gallery uses third-party thumbnails for internal research, not dealer-authorized production. Voice, video and integration details require dealer-specific setup and pilot tests.
+Marketplace/DMS access depends on subscriptions and site rules. Automation can help submit supported listings; some require dealer login or review. Ranking, leads, appointments and sales are not guaranteed. The sample gallery uses third-party thumbnails for research, not production. Setup and pilot tests confirm the voice, video and connection details.
